@@ -12,7 +12,10 @@ class TLinearRegressionSolver {
 private:
     TMeanCalculator GoalsMeanCalculator;
 
-    vector<TCovariationCalculator> LinearizedTriangleOLSMatrix;
+    vector<TMeanCalculator> FeatureMeanCalculators;
+    vector<double> LastMeans;
+    vector<double> LinearizedOLSMatrix;
+
     vector<TCovariationCalculator> OLSVector;
 public:
     void Add(const vector<double>& features, const double goal, const double weight);

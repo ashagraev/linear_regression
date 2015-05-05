@@ -6,15 +6,26 @@
 void TLinearRegressionSolver::Add(const vector<double>& features, const double goal, const double weight) {
     const size_t featuresCount = features.size();
 
-    if (LinearizedTriangleOLSMatrix.empty()) {
-        LinearizedTriangleOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
+    if (FeatureMeanCalculators.empty()) {
+        FeatureMeanCalculators.resize(featuresCount);
+        LastMeans.resize(featuresCount);
+
+        LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
         OLSVector.resize(featuresCount);
+    }
+
+    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
+        LastMeans[featureNumber] = FeatureMeanCalculators[featureNumber].GetMean();
+        FeatureMeanCalculators[featureNumber].Add(features[featureNumber]);
     }
 
     size_t olsMatrixElementIdx = 0;
     for (size_t firstFeatureNumber = 0; firstFeatureNumber < featuresCount; ++firstFeatureNumber) {
-        for (size_t secondFeatureNumber = firstFeatureNumber; secondFeatureNumber < features.size(); ++secondFeatureNumber) {
-            LinearizedTriangleOLSMatrix[olsMatrixElementIdx].Add(features[firstFeatureNumber], features[secondFeatureNumber], weight);
+        for (size_t secondFeatureNumber = firstFeatureNumber; secondFeatureNumber < featuresCount; ++secondFeatureNumber) {
+            LinearizedOLSMatrix[olsMatrixElementIdx] +=
+                (features[firstFeatureNumber] - LastMeans[firstFeatureNumber]) *
+                (features[secondFeatureNumber] - FeatureMeanCalculators[firstFeatureNumber].GetMean()) *
+                weight;
             ++olsMatrixElementIdx;
         }
         OLSVector[firstFeatureNumber].Add(features[firstFeatureNumber], goal, weight);
@@ -28,7 +39,7 @@ void TLinearRegressionSolver::Add(const TInstance& instance) {
 
 namespace {
     // LDL matrix decomposition, see http://en.wikipedia.org/wiki/Cholesky_decomposition#LDL_decomposition_2
-    void LDLDecomposition(const vector<TCovariationCalculator>& linearizedOLSMatrix,
+    void LDLDecomposition(const vector<double>& linearizedOLSMatrix,
                           vector<double>& decompositionTrace,
                           vector<vector<double> >& decompositionMatrix);
 
@@ -45,7 +56,7 @@ TLinearModel TLinearRegressionSolver::Solve() const {
     vector<double> decompositionTrace(featuresCount);
     vector<vector<double> > decompositionMatrix(featuresCount, vector<double>(featuresCount));
 
-    LDLDecomposition(LinearizedTriangleOLSMatrix, decompositionTrace, decompositionMatrix);
+    LDLDecomposition(LinearizedOLSMatrix, decompositionTrace, decompositionMatrix);
 
     TLinearModel model;
     model.Coefficients = SolveUpper(decompositionMatrix, SolveLower(decompositionMatrix, decompositionTrace, OLSVector));
@@ -127,7 +138,7 @@ double TBestSLRSolver::SumSquaredErrors() const {
 }
 
 namespace {
-    bool LDLDecomposition(const vector<TCovariationCalculator>& linearizedOLSMatrix,
+    bool LDLDecomposition(const vector<double>& linearizedOLSMatrix,
                           const double regularizationThreshold,
                           const double regularizationParameter,
                           vector<double>& decompositionTrace,
@@ -138,7 +149,7 @@ namespace {
         size_t olsMatrixElementIdx = 0;
         for (size_t rowNumber = 0; rowNumber < featuresCount; ++rowNumber) {
             double& decompositionTraceElement = decompositionTrace[rowNumber];
-            decompositionTraceElement = linearizedOLSMatrix[olsMatrixElementIdx].GetCovariation() + regularizationParameter;
+            decompositionTraceElement = linearizedOLSMatrix[olsMatrixElementIdx] + regularizationParameter;
 
             vector<double>& decompositionRow = decompositionMatrix[rowNumber];
             for (size_t i = 0; i < rowNumber; ++i) {
@@ -155,7 +166,7 @@ namespace {
                 vector<double>& secondDecompositionRow = decompositionMatrix[columnNumber];
                 double& decompositionMatrixElement = secondDecompositionRow[rowNumber];
 
-                decompositionMatrixElement = linearizedOLSMatrix[olsMatrixElementIdx].GetCovariation();
+                decompositionMatrixElement = linearizedOLSMatrix[olsMatrixElementIdx];
 
                 for (size_t j = 0; j < rowNumber; ++j) {
                     decompositionMatrixElement -= decompositionRow[j] * secondDecompositionRow[j] * decompositionTrace[j];
@@ -171,7 +182,7 @@ namespace {
         return true;
     }
 
-    void LDLDecomposition(const vector<TCovariationCalculator>& linearizedOLSMatrix,
+    void LDLDecomposition(const vector<double>& linearizedOLSMatrix,
                           vector<double>& decompositionTrace,
                           vector<vector<double> >& decompositionMatrix)
     {
