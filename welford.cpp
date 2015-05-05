@@ -37,6 +37,6 @@ double TDeviationCalculator::GetMean() const {
     return MeanCalculator.GetMean();
 }
 
-double TDeviationCalculator::GetCovariation() const {
+double TDeviationCalculator::GetDeviation() const {
     return Covariation;
 }

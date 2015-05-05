@@ -76,14 +76,14 @@ void TSLRSolver::Add(const double feature, const double goal, const double weigh
 
 template <typename TFloatType>
 void TSLRSolver::Solve(TFloatType& factor, TFloatType& intercept) const {
-    if (!FeaturesCalculator.GetCovariation()) {
+    if (!FeaturesCalculator.GetDeviation()) {
         factor = 0.;
         intercept = GoalsCalculator.GetMean();
         return;
     }
 
     const double regularizationParameter = 0.1;
-    factor = ProductCalculator.GetCovariation() / (FeaturesCalculator.GetCovariation() + regularizationParameter);
+    factor = ProductCalculator.GetCovariation() / (FeaturesCalculator.GetDeviation() + regularizationParameter);
     intercept = GoalsCalculator.GetMean() - factor * FeaturesCalculator.GetMean();
 }
 
@@ -91,7 +91,7 @@ double TSLRSolver::SumSquaredErrors() const {
     double factor, offset;
     Solve(factor, offset);
 
-    return factor * factor * FeaturesCalculator.GetCovariation() - 2 * factor * ProductCalculator.GetCovariation() + GoalsCalculator.GetCovariation();
+    return factor * factor * FeaturesCalculator.GetDeviation() - 2 * factor * ProductCalculator.GetCovariation() + GoalsCalculator.GetDeviation();
 }
 
 void TBestSLRSolver::Add(const vector<double>& features, const double goal, const double weight) {

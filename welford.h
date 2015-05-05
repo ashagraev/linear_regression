@@ -36,5 +36,5 @@ public:
     void Add(const double value, const double weight = 1.);
 
     double GetMean() const;
-    double GetCovariation() const;
+    double GetDeviation() const;
 };
