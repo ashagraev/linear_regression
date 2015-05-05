@@ -2,7 +2,9 @@
 
 void TMeanCalculator::Add(const double value, const double weight /*= 1.*/) {
     SumWeights += weight;
-    Mean += weight * (value - Mean) / SumWeights;
+    if ((double) SumWeights) {
+        Mean += weight * (value - Mean) / SumWeights;
+    }
 }
 
 double TMeanCalculator::GetMean() const {
