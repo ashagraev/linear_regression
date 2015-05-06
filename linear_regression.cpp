@@ -16,7 +16,7 @@ void TLinearRegressionSolver::Add(const vector<double>& features, const double g
 
     for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
         LastMeans[featureNumber] = FeatureMeanCalculators[featureNumber].GetMean();
-        FeatureMeanCalculators[featureNumber].Add(features[featureNumber]);
+        FeatureMeanCalculators[featureNumber].Add(features[featureNumber], weight);
     }
 
     size_t olsMatrixElementIdx = 0;
