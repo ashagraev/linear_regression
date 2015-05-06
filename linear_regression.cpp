@@ -24,7 +24,7 @@ void TLinearRegressionSolver::Add(const vector<double>& features, const double g
         for (size_t secondFeatureNumber = firstFeatureNumber; secondFeatureNumber < featuresCount; ++secondFeatureNumber) {
             LinearizedOLSMatrix[olsMatrixElementIdx] +=
                 (features[firstFeatureNumber] - LastMeans[firstFeatureNumber]) *
-                (features[secondFeatureNumber] - FeatureMeanCalculators[firstFeatureNumber].GetMean()) *
+                (features[secondFeatureNumber] - FeatureMeanCalculators[secondFeatureNumber].GetMean()) *
                 weight;
             ++olsMatrixElementIdx;
         }
