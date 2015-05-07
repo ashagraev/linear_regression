@@ -1,12 +1,12 @@
 #include "pool.h"
 
-#include <algorithm>
+#include <iostream>
 #include <fstream>
+#include <string>
 #include <sstream>
 
-TInstance TInstance::FromFeaturesString(const string& featuresString, const size_t idx) {
+TInstance TInstance::FromFeaturesString(const string& featuresString) {
     TInstance instance;
-    instance.Idx = idx;
 
     stringstream featuresStream(featuresString);
 
@@ -25,14 +25,11 @@ TInstance TInstance::FromFeaturesString(const string& featuresString, const size
     return instance;
 }
 
-TPool::TCVIterator::TCVIterator(const TPool& parentPool,
-                                const size_t foldsCount,
-                                const TPool::EIteratorType iteratorType)
+TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)
     : ParentPool(parentPool)
     , FoldsCount(foldsCount)
-    , InstanceFoldNumbers(ParentPool.size())
     , IteratorType(iteratorType)
-    , RandomGenerator(0)
+    , InstanceFoldNumbers(ParentPool.size())
 {
 }
 
@@ -59,11 +56,11 @@ bool TPool::TCVIterator::IsValid() const {
     return Current != InstanceFoldNumbers.end();
 }
 
-const TInstance& TPool::TCVIterator::operator*() {
+const TInstance& TPool::TCVIterator::operator* () const {
     return ParentPool[Current - InstanceFoldNumbers.begin()];
 }
 
-const TInstance* TPool::TCVIterator::operator->() {
+const TInstance* TPool::TCVIterator::operator->() const {
     return &ParentPool[Current - InstanceFoldNumbers.begin()];
 }
 
@@ -89,64 +86,31 @@ bool TPool::TCVIterator::TakeCurrent() const {
     return false;
 }
 
-TPool::TCVIterator TPool::CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const {
-    return TPool::TCVIterator(*this, foldsCount, iteratorType);
-}
-
-TPool TPool::ReadPoolFromFeatures(const string& featuresPath) {
-    TPool pool;
-
+void TPool::ReadFromFeatures(const string& featuresPath) {
     ifstream featuresIn(featuresPath);
 
-    size_t idx = 0;
     string featuresString;
     while (getline(featuresIn, featuresString)) {
         if (featuresString.empty()) {
             continue;
         }
-        pool.push_back(TInstance::FromFeaturesString(featuresString, idx++));
-    }
-    return pool;
-}
-
-void TPool::SaveToFeatures(const string path) const {
-    ofstream featuresOut(path);
-    for (const TInstance& instance : *this) {
-        featuresOut << 1 << "\t";
-        featuresOut << instance.Goal << "\t";
-        featuresOut << 1 << "\t";
-        featuresOut << instance.Weight;
-
-        for (const double feature : instance.Features) {
-            char dest[20];
-            sprintf_s(dest, "%.10lf", feature);
-            featuresOut << dest << ",";
-        }
-        featuresOut << "\n";
+        this->push_back(TInstance::FromFeaturesString(featuresString));
     }
 }
 
-void TPool::SaveToArff(const string path) const {
-    ofstream arffOut(path);
+TPool::TCVIterator TPool::CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const {
+    return TPool::TCVIterator(*this, foldsCount, iteratorType);
+}
 
-    if (this->empty()) {
-        return;
-    }
+TPool TPool::InjurePool(const double injureFactor, const double injureOffset) const {
+    TPool injuredPool(*this);
 
-    arffOut << "@relation rel\n";
-    size_t featuresCount = this->front().Features.size();
-    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
-        arffOut << "@attribute attr" << featureNumber << " real\n";
-    }
-    arffOut << "@attribute goal real\n";
-    arffOut << "@data\n";
-
-    for (const TInstance& instance : *this) {
-        for (const double feature : instance.Features) {
-            char dest[20];
-            sprintf_s(dest, "%.10lf", feature);
-            arffOut << dest << ",";
+    for (TInstance& instance : injuredPool) {
+        for (double& feature : instance.Features) {
+            feature = feature * injureFactor + injureOffset;
         }
-        arffOut << instance.Goal << "\n";
+        instance.Goal = instance.Goal * injureFactor + injureOffset;
     }
+
+    return injuredPool;
 }

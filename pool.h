@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <vector>
 #include <random>
 #include <string>
@@ -7,17 +8,14 @@
 using namespace std;
 
 struct TInstance {
-    size_t Idx;
-
+    vector<double> Features;
     double Goal;
     double Weight;
-    vector<double> Features;
 
-    static TInstance FromFeaturesString(const string& featuresString, const size_t idx);
+    static TInstance FromFeaturesString(const string& featuresString);
 };
 
-class TPool : public vector<TInstance> {
-public:
+struct TPool : public vector<TInstance> {
     enum EIteratorType {
         LearnIterator,
         TestIterator,
@@ -33,30 +31,30 @@ public:
         size_t TestFoldNumber;
 
         vector<size_t> InstanceFoldNumbers;
-        vector<size_t>::iterator Current;
+        vector<size_t>::const_iterator Current;
 
         mt19937 RandomGenerator;
     public:
         TCVIterator(const TPool& parentPool,
                     const size_t foldsCount,
                     const EIteratorType iteratorType);
+
         void ResetShuffle();
+
         void SetTestFold(const size_t testFoldNumber);
+
         bool IsValid() const;
 
-        const TInstance& operator*();
-        const TInstance* operator->();
-
+        const TInstance& operator * () const;
+        const TInstance* operator ->() const;
         TPool::TCVIterator& operator++();
     private:
         void Advance();
         bool TakeCurrent() const;
     };
 
+    void ReadFromFeatures(const string& featuresPath);
     TCVIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
-    static TPool ReadPoolFromFeatures(const string& featuresPath);
-
-    void SaveToFeatures(const string path) const;
-    void SaveToArff(const string path) const;
+    TPool InjurePool(const double injureFactir, const double injureOffset) const;
 };

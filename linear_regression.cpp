@@ -3,141 +3,146 @@
 
 #include <algorithm>
 
+namespace {
+    inline void AddFeaturesProduct(const double weight, const vector<double>& features, vector<double>& linearizedOLSTriangleMatrix);
+
+    vector<double> Solve(const vector<double>& olsMatrix, const vector<double>& olsVector);
+
+    double SumSquaredErrors(const vector<double>& olsMatrix,
+                            const vector<double>& olsVector,
+                            const vector<double>& solution,
+                            const double goalsDeviation);
+}
+
+
+void TFastLinearRegressionSolver::Add(const vector<double>& features, const double goal, const double weight) {
+    const size_t featuresCount = features.size();
+
+    if (LinearizedOLSMatrix.empty()) {
+        LinearizedOLSMatrix.resize((featuresCount + 1) * (featuresCount + 2) / 2);
+        OLSVector.resize(featuresCount + 1);
+    }
+
+    AddFeaturesProduct(weight, features, LinearizedOLSMatrix);
+
+    const double weightedGoal = goal * weight;
+    vector<double>::iterator olsVectorElement = OLSVector.begin();
+    for (const double feature : features) {
+        *olsVectorElement += feature * weightedGoal;
+        ++olsVectorElement;
+    }
+    *olsVectorElement += weightedGoal;
+
+    SumSquaredGoals += goal * goal * weight;
+}
+
 void TLinearRegressionSolver::Add(const vector<double>& features, const double goal, const double weight) {
     const size_t featuresCount = features.size();
 
-    if (FeatureMeanCalculators.empty()) {
-        FeatureMeanCalculators.resize(featuresCount);
+    if (FeatureMeans.empty()) {
+        FeatureMeans.resize(featuresCount);
         LastMeans.resize(featuresCount);
+        NewMeans.resize(featuresCount);
 
         LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
         OLSVector.resize(featuresCount);
     }
 
-    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
-        LastMeans[featureNumber] = FeatureMeanCalculators[featureNumber].GetMean();
-        FeatureMeanCalculators[featureNumber].Add(features[featureNumber], weight);
+    SumWeights += weight;
+    if (!SumWeights) {
+        return;
     }
 
-    size_t olsMatrixElementIdx = 0;
-    for (size_t firstFeatureNumber = 0; firstFeatureNumber < featuresCount; ++firstFeatureNumber) {
-        for (size_t secondFeatureNumber = firstFeatureNumber; secondFeatureNumber < featuresCount; ++secondFeatureNumber) {
-            LinearizedOLSMatrix[olsMatrixElementIdx] +=
-                (features[firstFeatureNumber] - LastMeans[firstFeatureNumber]) *
-                (features[secondFeatureNumber] - FeatureMeanCalculators[secondFeatureNumber].GetMean()) *
-                weight;
-            ++olsMatrixElementIdx;
-        }
-        OLSVector[firstFeatureNumber].Add(features[firstFeatureNumber], goal, weight);
+    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
+        const double feature = features[featureNumber];
+        double& featureMean = FeatureMeans[featureNumber];
+
+        LastMeans[featureNumber] = weight * (feature - featureMean);
+        featureMean += weight * (feature - featureMean) / SumWeights;
+        NewMeans[featureNumber] = feature - featureMean;;
     }
-    GoalsMeanCalculator.Add(goal, weight);
+
+    vector<double>::iterator olsMatrixElement = LinearizedOLSMatrix.begin();
+
+    vector<double>::iterator lastMean = LastMeans.begin();
+    vector<double>::iterator newMean = NewMeans.begin();
+    for (; lastMean != LastMeans.end(); ++lastMean, ++newMean) {
+        for (vector<double>::iterator secondFeatureMean = newMean; secondFeatureMean != NewMeans.end(); ++secondFeatureMean) {
+            *olsMatrixElement++ += *lastMean * *secondFeatureMean;
+        }
+    }
+
+    for (size_t firstFeatureNumber = 0; firstFeatureNumber < features.size(); ++firstFeatureNumber) {
+        OLSVector[firstFeatureNumber] += weight * (features[firstFeatureNumber] - FeatureMeans[firstFeatureNumber]) * (goal - GoalsMean);
+    }
+
+    const double oldGoalsMean = GoalsMean;
+    GoalsMean += weight * (goal - GoalsMean) / SumWeights;
+    GoalsDeviation += weight * (goal - oldGoalsMean) * (goal - GoalsMean);
 }
 
-void TLinearRegressionSolver::Add(const TInstance& instance) {
-    Add(instance.Features, instance.Goal, instance.Weight);
+TLinearModel TFastLinearRegressionSolver::Solve() const {
+    TLinearModel linearModel;
+    linearModel.Coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
+
+    if (!linearModel.Coefficients.empty()) {
+        linearModel.Intercept = linearModel.Coefficients.back();
+        linearModel.Coefficients.pop_back();
+    }
+
+    return linearModel;
+}
+
+TLinearModel TLinearRegressionSolver::Solve() const {
+    TLinearModel model;
+    model.Coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
+    model.Intercept = GoalsMean;
+
+    const size_t featuresCount = OLSVector.size();
+    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
+        model.Intercept -= FeatureMeans[featureNumber] * model.Coefficients[featureNumber];
+    }
+
+    return model;
+}
+
+double TFastLinearRegressionSolver::SumSquaredErrors() const {
+    vector<double> coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
+    return ::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
+}
+
+double TLinearRegressionSolver::SumSquaredErrors() const {
+    vector<double> coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
+    return ::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
+}
+
+void TSLRSolver::Add(const double feature, const double goal, const double weight) {
+    SumWeights += weight;
+    if (!SumWeights) {
+        return;
+    }
+
+    const double weightedFeatureDiff = weight * (feature - FeaturesMean);
+    const double weightedGoalDiff = weight * (goal - GoalsMean);
+
+    FeaturesMean += weightedFeatureDiff / SumWeights;
+    FeaturesDeviation += weightedFeatureDiff * (feature - FeaturesMean);
+
+    GoalsMean += weightedGoalDiff / SumWeights;
+    GoalsDeviation += weightedGoalDiff * (goal - GoalsMean);
+
+    Covariation += weightedFeatureDiff * (goal - GoalsMean);
+}
+
+double TSLRSolver::SumSquaredErrors(const double regularizationParameter) const {
+    double factor, offset;
+    Solve(factor, offset, regularizationParameter);
+
+    return factor * factor * FeaturesDeviation - 2 * factor * Covariation + GoalsDeviation;
 }
 
 namespace {
     // LDL matrix decomposition, see http://en.wikipedia.org/wiki/Cholesky_decomposition#LDL_decomposition_2
-    void LDLDecomposition(const vector<double>& linearizedOLSMatrix,
-                          vector<double>& decompositionTrace,
-                          vector<vector<double> >& decompositionMatrix);
-
-    vector<double> SolveLower(const vector<vector<double> >& decompositionMatrix,
-                              const vector<double>& decompositionTrace,
-                              const vector<TCovariationCalculator>& olsVector);
-    vector<double> SolveUpper(const vector<vector<double> >& decompositionMatrix,
-                              const vector<double>& lowerSolution);
-}
-
-TLinearModel TLinearRegressionSolver::Solve() const {
-    const size_t featuresCount = OLSVector.size();
-
-    vector<double> decompositionTrace(featuresCount);
-    vector<vector<double> > decompositionMatrix(featuresCount, vector<double>(featuresCount));
-
-    LDLDecomposition(LinearizedOLSMatrix, decompositionTrace, decompositionMatrix);
-
-    TLinearModel model;
-    model.Coefficients = SolveUpper(decompositionMatrix, SolveLower(decompositionMatrix, decompositionTrace, OLSVector));
-
-    model.Intercept = GoalsMeanCalculator.GetMean();
-    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
-        model.Intercept -= OLSVector[featureNumber].GetFirstValueMean() * model.Coefficients[featureNumber];
-    }
-    return model;
-}
-
-void TSLRSolver::Add(const double feature, const double goal, const double weight) {
-    FeaturesCalculator.Add(feature, weight);
-    GoalsCalculator.Add(goal, weight);
-    ProductCalculator.Add(feature, goal, weight);
-}
-
-template <typename TFloatType>
-void TSLRSolver::Solve(TFloatType& factor, TFloatType& intercept) const {
-    if (!FeaturesCalculator.GetDeviation()) {
-        factor = 0.;
-        intercept = GoalsCalculator.GetMean();
-        return;
-    }
-
-    const double regularizationParameter = 0.1;
-    factor = ProductCalculator.GetCovariation() / (FeaturesCalculator.GetDeviation() + regularizationParameter);
-    intercept = GoalsCalculator.GetMean() - factor * FeaturesCalculator.GetMean();
-}
-
-double TSLRSolver::SumSquaredErrors() const {
-    double factor, offset;
-    Solve(factor, offset);
-
-    return factor * factor * FeaturesCalculator.GetDeviation() - 2 * factor * ProductCalculator.GetCovariation() + GoalsCalculator.GetDeviation();
-}
-
-void TBestSLRSolver::Add(const vector<double>& features, const double goal, const double weight) {
-    if (SLRSolvers.empty()) {
-        SLRSolvers.resize(features.size());
-    }
-
-    for (size_t featureNumber = 0; featureNumber < features.size(); ++featureNumber) {
-        SLRSolvers[featureNumber].Add(features[featureNumber], goal, weight);
-    }
-}
-
-void TBestSLRSolver::Add(const TInstance& instance) {
-    Add(instance.Features, instance.Goal, instance.Weight);
-}
-
-TLinearModel TBestSLRSolver::Solve() const {
-    const TSLRSolver* bestSolver = nullptr;
-    for (const TSLRSolver& solver : SLRSolvers) {
-        if (!bestSolver || solver.SumSquaredErrors() < bestSolver->SumSquaredErrors()) {
-            bestSolver = &solver;
-        }
-    }
-
-    TLinearModel model;
-    if (bestSolver) {
-        model.Coefficients.resize(SLRSolvers.size());
-        bestSolver->Solve(model.Coefficients[bestSolver - &*SLRSolvers.begin()], model.Intercept);
-    }
-
-    return model;
-}
-
-double TBestSLRSolver::SumSquaredErrors() const {
-    if (SLRSolvers.empty()) {
-        return 0.;
-    }
-
-    double sse = SLRSolvers.begin()->SumSquaredErrors();
-    for (const TSLRSolver& solver : SLRSolvers) {
-        sse = min(solver.SumSquaredErrors(), sse);
-    }
-    return sse;
-}
-
-namespace {
     bool LDLDecomposition(const vector<double>& linearizedOLSMatrix,
                           const double regularizationThreshold,
                           const double regularizationParameter,
@@ -201,14 +206,14 @@ namespace {
 
     vector<double> SolveLower(const vector<vector<double> >& decompositionMatrix,
                               const vector<double>& decompositionTrace,
-                              const vector<TCovariationCalculator>& olsVector)
+                              const vector<double>& olsVector)
     {
         const size_t featuresCount = olsVector.size();
 
         vector<double> solution(featuresCount);
         for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
             double& solutionElement = solution[featureNumber];
-            solutionElement = olsVector[featureNumber].GetCovariation();
+            solutionElement = olsVector[featureNumber];
 
             const vector<double>& decompositionRow = decompositionMatrix[featureNumber];
             for (size_t i = 0; i < featureNumber; ++i) {
@@ -240,5 +245,51 @@ namespace {
         }
 
         return solution;
+    }
+
+    vector<double> Solve(const vector<double>& olsMatrix, const vector<double>& olsVector) {
+        const size_t featuresCount = olsVector.size();
+
+        vector<double> decompositionTrace(featuresCount);
+        vector<vector<double> > decompositionMatrix(featuresCount, vector<double>(featuresCount));
+
+        LDLDecomposition(olsMatrix, decompositionTrace, decompositionMatrix);
+
+        return SolveUpper(decompositionMatrix, SolveLower(decompositionMatrix, decompositionTrace, olsVector));
+    }
+
+    double SumSquaredErrors(const vector<double>& olsMatrix,
+                            const vector<double>& olsVector,
+                            const vector<double>& solution,
+                            const double goalsDeviation)
+    {
+        const size_t featuresCount = olsVector.size();
+
+        double sumSquaredErrors = goalsDeviation;
+        size_t olsMatrixElementIdx = 0;
+        for (size_t i = 0; i < featuresCount; ++i) {
+            sumSquaredErrors += olsMatrix[olsMatrixElementIdx] * solution[i] * solution[i];
+            ++olsMatrixElementIdx;
+            for (size_t j = i + 1; j < featuresCount; ++j) {
+                sumSquaredErrors += 2 * olsMatrix[olsMatrixElementIdx] * solution[i] * solution[j];
+                ++olsMatrixElementIdx;
+            }
+            sumSquaredErrors -= 2 * solution[i] * olsVector[i];
+        }
+        return sumSquaredErrors;
+    }
+
+    inline void AddFeaturesProduct(const double weight, const vector<double>& features, vector<double>& linearizedTriangleMatrix) {
+        vector<double>::const_iterator leftFeature = features.begin();
+        vector<double>::iterator matrixElement = linearizedTriangleMatrix.begin();
+        for (; leftFeature != features.end(); ++leftFeature, ++matrixElement) {
+            const double weightedFeature = weight * *leftFeature;
+            vector<double>::const_iterator rightFeature = leftFeature;
+            for (; rightFeature != features.end(); ++rightFeature, ++matrixElement) {
+                *matrixElement += weightedFeature * *rightFeature;
+            }
+            *matrixElement += weightedFeature;
+        }
+        linearizedTriangleMatrix.back() += weight;
     }
 }
