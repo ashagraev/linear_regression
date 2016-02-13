@@ -2,6 +2,7 @@
 #include "linear_regression.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace {
     inline void AddFeaturesProduct(const double weight, const vector<double>& features, vector<double>& linearizedOLSTriangleMatrix);
@@ -15,7 +16,7 @@ namespace {
 }
 
 
-void TFastLinearRegressionSolver::Add(const vector<double>& features, const double goal, const double weight) {
+void TFastLRSolver::Add(const vector<double>& features, const double goal, const double weight) {
     const size_t featuresCount = features.size();
 
     if (LinearizedOLSMatrix.empty()) {
@@ -36,7 +37,7 @@ void TFastLinearRegressionSolver::Add(const vector<double>& features, const doub
     SumSquaredGoals += goal * goal * weight;
 }
 
-void TLinearRegressionSolver::Add(const vector<double>& features, const double goal, const double weight) {
+void TWelfordLRSolver::Add(const vector<double>& features, const double goal, const double weight) {
     const size_t featuresCount = features.size();
 
     if (FeatureMeans.empty()) {
@@ -81,7 +82,7 @@ void TLinearRegressionSolver::Add(const vector<double>& features, const double g
     GoalsDeviation += weight * (goal - oldGoalsMean) * (goal - GoalsMean);
 }
 
-TLinearModel TFastLinearRegressionSolver::Solve() const {
+TLinearModel TFastLRSolver::Solve() const {
     TLinearModel linearModel;
     linearModel.Coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
 
@@ -93,7 +94,7 @@ TLinearModel TFastLinearRegressionSolver::Solve() const {
     return linearModel;
 }
 
-TLinearModel TLinearRegressionSolver::Solve() const {
+TLinearModel TWelfordLRSolver::Solve() const {
     TLinearModel model;
     model.Coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
     model.Intercept = GoalsMean;
@@ -106,17 +107,17 @@ TLinearModel TLinearRegressionSolver::Solve() const {
     return model;
 }
 
-double TFastLinearRegressionSolver::SumSquaredErrors() const {
+double TFastLRSolver::SumSquaredErrors() const {
     vector<double> coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
     return ::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
 }
 
-double TLinearRegressionSolver::SumSquaredErrors() const {
+double TWelfordLRSolver::SumSquaredErrors() const {
     vector<double> coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
     return ::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
-void TSLRSolver::Add(const double feature, const double goal, const double weight) {
+void TWelfordSLRSolver::Add(const double feature, const double goal, const double weight) {
     SumWeights += weight;
     if (!SumWeights) {
         return;
@@ -134,7 +135,7 @@ void TSLRSolver::Add(const double feature, const double goal, const double weigh
     Covariation += weightedFeatureDiff * (goal - GoalsMean);
 }
 
-double TSLRSolver::SumSquaredErrors(const double regularizationParameter) const {
+double TWelfordSLRSolver::SumSquaredErrors(const double regularizationParameter) const {
     double factor, offset;
     Solve(factor, offset, regularizationParameter);
 

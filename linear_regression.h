@@ -3,7 +3,7 @@
 #include "linear_model.h"
 #include "welford.h"
 
-class TFastLinearRegressionSolver {
+class TFastLRSolver {
 private:
     TKahanAccumulator SumSquaredGoals;
 
@@ -15,7 +15,7 @@ public:
     double SumSquaredErrors() const;
 };
 
-class TLinearRegressionSolver {
+class TWelfordLRSolver {
 private:
     double GoalsMean = 0.;
     double GoalsDeviation = 0.;
@@ -115,7 +115,7 @@ private:
 using TFastSLRSolver = TTypedFastSLRSolver<double>;
 using TKahanSLRSolver = TTypedFastSLRSolver<TKahanAccumulator>;
 
-class TSLRSolver {
+class TWelfordSLRSolver {
 private:
     double FeaturesMean = 0.;
     double FeaturesDeviation = 0.;
@@ -182,8 +182,8 @@ public:
         }
 
         double sse = SLRSolvers.begin()->SumSquaredErrors(regularizationParameter);
-        for (const TSLRSolver& solver : SLRSolvers) {
-            sse = Min(solver.SumSquaredErrors(regularizationParameter), sse);
+        for (const TWelfordSLRSolver& solver : SLRSolvers) {
+            sse = min(solver.SumSquaredErrors(regularizationParameter), sse);
         }
         return sse;
     }
@@ -191,4 +191,4 @@ public:
 
 using TFastBestSLRSolver = TTypedBestSLRSolver<TFastSLRSolver>;
 using TKahanBestSLRSolver = TTypedBestSLRSolver<TKahanSLRSolver>;
-using TBestSLRSolver = TTypedBestSLRSolver<TSLRSolver>;
+using TWelfordBestSLRSolver = TTypedBestSLRSolver<TWelfordSLRSolver>;
