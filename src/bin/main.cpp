@@ -55,6 +55,48 @@ int PrintHelp() {
     return 1;
 }
 
+int DoLearn(const TRunData &runData) {
+    TPool pool;
+    pool.ReadFromFeatures(runData.FeaturesFilePath);
+
+    TLinearModel linearModel;
+    if (runData.LearningMode == "fast_bslr") {
+        linearModel = Solve<TFastBestSLRSolver>(pool);
+    }
+    if (runData.LearningMode == "kahan_bslr") {
+        linearModel = Solve<TKahanBestSLRSolver>(pool);
+    }
+    if (runData.LearningMode == "welford_bslr") {
+        linearModel = Solve<TWelfordBestSLRSolver>(pool);
+    }
+    if (runData.LearningMode == "fast_lr") {
+        linearModel = Solve<TFastLRSolver>(pool);
+    }
+    if (runData.LearningMode == "welford_lr") {
+        linearModel = Solve<TWelfordLRSolver>(pool);
+    }
+
+    linearModel.SaveToFile(runData.ModelFilePath);
+
+    return 0;
+}
+
+int DoPredict(const TRunData &runData) {
+    TPool pool;
+    pool.ReadFromFeatures(runData.FeaturesFilePath);
+
+    ofstream predictionsOut(runData.PredictionsPath);
+    predictionsOut.precision(20);
+
+    const TLinearModel linearModel = TLinearModel::LoadFromFile(runData.ModelFilePath);
+
+    for (const TInstance& instance : pool) {
+        predictionsOut << linearModel.Prediction(instance.Features) << "\n";
+    }
+
+    return 0;
+}
+
 int main(int argc, const char** argv) {
     if (!TRunData::ParametersAreCorrect(argc, argv)) {
         return PrintHelp();
@@ -62,43 +104,11 @@ int main(int argc, const char** argv) {
 
     TRunData runData = TRunData::Load(argv);
 
-    TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
-
     if (runData.Mode == "learn") {
-        TLinearModel linearModel;
-        if (runData.LearningMode == "fast_bslr") {
-            linearModel = Solve<TFastBestSLRSolver>(pool);
-        }
-        if (runData.LearningMode == "kahan_bslr") {
-            linearModel = Solve<TKahanBestSLRSolver>(pool);
-        }
-        if (runData.LearningMode == "welford_bslr") {
-            linearModel = Solve<TWelfordBestSLRSolver>(pool);
-        }
-        if (runData.LearningMode == "fast_lr") {
-            linearModel = Solve<TFastLRSolver>(pool);
-        }
-        if (runData.LearningMode == "welford_lr") {
-            linearModel = Solve<TWelfordLRSolver>(pool);
-        }
-
-        linearModel.SaveToFile(runData.ModelFilePath);
-
-        return 0;
+        return DoLearn(runData);
     }
-
     if (runData.Mode == "predict") {
-        ofstream predictionsOut(runData.PredictionsPath);
-        predictionsOut.precision(20);
-
-        TLinearModel linearModel = TLinearModel::LoadFromFile(runData.ModelFilePath);
-
-        for (const TInstance& instance : pool) {
-            predictionsOut << linearModel.Prediction(instance.Features) << "\n";
-        }
-
-        return 0;
+        return DoPredict(runData);
     }
 
     return PrintHelp();
