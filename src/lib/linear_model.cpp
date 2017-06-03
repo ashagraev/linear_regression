@@ -31,6 +31,6 @@ TLinearModel TLinearModel::LoadFromFile(const string& modelPath) {
     for (size_t featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
         modelIn >> model.Coefficients[featureIdx];
     }
- 
+
     return model;
 }
