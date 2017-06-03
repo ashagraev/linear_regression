@@ -1,5 +1,5 @@
-#include "linear_regression.h"
-#include "pool.h"
+#include "../lib/linear_regression.h"
+#include "../lib/pool.h"
 
 #include <iostream>
 #include <time.h>
@@ -14,7 +14,20 @@ TLinearModel Solve(const TPool& pool) {
 }
 
 int main(int argc, const char** argv) {
-    (void) argc;
+    if (argc != 5) {
+        cerr << "usage:" << endl;
+        cerr << "    linear_regression learn features_path model_path learning_method" << endl;
+        cerr << "    linear_regression predict features_path model_path predictions_path" << endl;
+        cerr << "available learn modes:" << endl;
+        cerr << "    fast_bslr for simple linear regression" << endl;
+        cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
+        cerr << "    welford_bslr for simple linear regression with Welford's method" << endl;
+        cerr << "    fast_lr for fast linear regression" << endl;
+        cerr << "    welford_lr for linear regression with Welford's method" << endl;
+
+        return 1;
+    }
+
     string mode = argv[1];
 
     string featuresFilePath = argv[2];
