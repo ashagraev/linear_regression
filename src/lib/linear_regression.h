@@ -84,7 +84,7 @@ public:
             return 0.;
         }
 
-        double sumGoalSquaredDeviations = (double) SumSquaredGoals - (double) SumGoals / (double) SumWeights * (double) SumGoals;
+        const double sumGoalSquaredDeviations = (double) SumSquaredGoals - (double) SumGoals / (double) SumWeights * (double) SumGoals;
 
         double productsDeviation, featuresDeviation;
         SetupSolutionFactors(productsDeviation, featuresDeviation);
@@ -92,9 +92,9 @@ public:
             return sumGoalSquaredDeviations;
         }
 
-        double factor = productsDeviation / (featuresDeviation + regularizationParameter);
+        const double factor = productsDeviation / (featuresDeviation + regularizationParameter);
+        const double sumSquaredErrors = factor * factor * featuresDeviation - 2 * factor * productsDeviation + sumGoalSquaredDeviations;
 
-        double sumSquaredErrors = factor * factor * featuresDeviation - 2 * factor * productsDeviation + sumGoalSquaredDeviations;
         return max(0., sumSquaredErrors);
     }
 private:
