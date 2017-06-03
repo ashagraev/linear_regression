@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pool.h"
+
 #include <vector>
 #include <numeric>
 #include <string>
