@@ -16,7 +16,7 @@ struct TRunData {
     double InjureFactor = 1.;
     double InjureOffset = 0.;
 
-    static TRunData Load(const char** argv) {
+    static TRunData Load(int argc, const char** argv) {
         TRunData runData;
 
         runData.Mode = argv[1];
@@ -24,22 +24,23 @@ struct TRunData {
         runData.FeaturesFilePath = argv[2];
         runData.ModelFilePath = argv[3];
 
-        runData.LearningMode = argv[4];
-        runData.PredictionsPath = argv[4];
-
-        try {
-            runData.InjureFactor = atof(argv[3]);
-            runData.InjureOffset = atof(argv[4]);
-        } catch (...) {
-            runData.InjureFactor = 1.;
-            runData.InjureOffset = 0.;
+        if (argc > 4) {
+            runData.LearningMode = argv[4];
+            runData.PredictionsPath = argv[4];
+            try {
+                runData.InjureFactor = atof(argv[3]);
+                runData.InjureOffset = atof(argv[4]);
+            } catch (...) {
+                runData.InjureFactor = 1.;
+                runData.InjureOffset = 0.;
+            }
         }
 
         return runData;
     }
 
     static bool ParametersAreCorrect(int argc, const char** argv) {
-        return (argv[1] == "predict" && argc == 4) || argc == 5;
+        return (strcmp(argv[1], "predict") == 0 && argc == 4) || argc == 5;
     }
 };
 
@@ -121,7 +122,7 @@ int main(int argc, const char** argv) {
         return PrintHelp();
     }
 
-    TRunData runData = TRunData::Load(argv);
+    TRunData runData = TRunData::Load(argc, argv);
 
     if (runData.Mode == "learn") {
         return DoLearn(runData);
