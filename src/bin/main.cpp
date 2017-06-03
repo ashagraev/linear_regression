@@ -13,19 +13,23 @@ TLinearModel Solve(const TPool& pool) {
     return solver.Solve();
 }
 
+int PrintHelp() {
+    cerr << "usage:" << endl;
+    cerr << "    linear_regression learn features_path model_path learning_method" << endl;
+    cerr << "    linear_regression predict features_path model_path predictions_path" << endl;
+    cerr << "available learn modes:" << endl;
+    cerr << "    fast_bslr for simple linear regression" << endl;
+    cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
+    cerr << "    welford_bslr for simple linear regression with Welford's method" << endl;
+    cerr << "    fast_lr for fast linear regression" << endl;
+    cerr << "    welford_lr for linear regression with Welford's method" << endl;
+
+    return 1;
+}
+
 int main(int argc, const char** argv) {
     if (argc != 5) {
-        cerr << "usage:" << endl;
-        cerr << "    linear_regression learn features_path model_path learning_method" << endl;
-        cerr << "    linear_regression predict features_path model_path predictions_path" << endl;
-        cerr << "available learn modes:" << endl;
-        cerr << "    fast_bslr for simple linear regression" << endl;
-        cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
-        cerr << "    welford_bslr for simple linear regression with Welford's method" << endl;
-        cerr << "    fast_lr for fast linear regression" << endl;
-        cerr << "    welford_lr for linear regression with Welford's method" << endl;
-
-        return 1;
+        return PrintHelp();
     }
 
     string mode = argv[1];
@@ -57,6 +61,8 @@ int main(int argc, const char** argv) {
         }
 
         linearModel.SaveToFile(modelFilePath);
+
+        return 0;
     }
 
     if (mode == "predict") {
@@ -70,7 +76,9 @@ int main(int argc, const char** argv) {
         for (const TInstance& instance : pool) {
             predictionsOut << linearModel.Prediction(instance.Features) << "\n";
         }
+
+        return 0;
     }
 
-    return 0;
+    return PrintHelp();
 }
