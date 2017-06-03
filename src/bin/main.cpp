@@ -4,15 +4,6 @@
 #include <iostream>
 #include <time.h>
 
-template <typename TSolver>
-TLinearModel Solve(const TPool& pool) {
-    TSolver solver;
-    for (const TInstance& instance : pool) {
-        solver.Add(instance.Features, instance.Goal, instance.Weight);
-    }
-    return solver.Solve();
-}
-
 struct TRunData {
     string Mode;
 

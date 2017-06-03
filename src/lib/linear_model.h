@@ -22,3 +22,12 @@ struct TLinearModel {
         return inner_product(Coefficients.begin(), Coefficients.end(), features.begin(), Intercept);
     }
 };
+
+template <typename TSolver>
+TLinearModel Solve(const TPool& pool) {
+    TSolver solver;
+    for (const TInstance& instance : pool) {
+        solver.Add(instance.Features, instance.Goal, instance.Weight);
+    }
+    return solver.Solve();
+}
