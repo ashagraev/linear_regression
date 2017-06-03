@@ -11,9 +11,9 @@ TInstance TInstance::FromFeaturesString(const string& featuresString) {
     stringstream featuresStream(featuresString);
 
     string queryId, url;
-    featuresStream >> queryId;
+    featuresStream >> instance.QueryId;
     featuresStream >> instance.Goal;
-    featuresStream >> url;
+    featuresStream >> instance.Url;
     featuresStream >> instance.Weight;
     instance.Weight = 1.;
 
@@ -23,6 +23,21 @@ TInstance TInstance::FromFeaturesString(const string& featuresString) {
     }
 
     return instance;
+}
+
+std::string TInstance::ToFeaturesString() const {
+    stringstream ss;
+
+    ss << QueryId << "\t";
+    ss << Goal << "\t";
+    ss << Url << "\t";
+    ss << Weight;
+
+    for (const double feature : Features) {
+        ss << "\t" << feature;
+    }
+
+    return ss.str();
 }
 
 TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)

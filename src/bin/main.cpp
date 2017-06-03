@@ -13,6 +13,9 @@ struct TRunData {
     string LearningMode;
     string PredictionsPath;
 
+    double InjureFactor = 1.;
+    double InjureOffset = 0.;
+
     static TRunData Load(const char** argv) {
         TRunData runData;
 
@@ -24,18 +27,27 @@ struct TRunData {
         runData.LearningMode = argv[4];
         runData.PredictionsPath = argv[4];
 
+        try {
+            runData.InjureFactor = atof(argv[3]);
+            runData.InjureOffset = atof(argv[4]);
+        } catch (...) {
+            runData.InjureFactor = 1.;
+            runData.InjureOffset = 0.;
+        }
+
         return runData;
     }
 
     static bool ParametersAreCorrect(int argc, const char** argv) {
-        return argc == 5;
+        return (argv[1] == "predict" && argc == 4) || argc == 5;
     }
 };
 
 int PrintHelp() {
     cerr << "usage:" << endl;
     cerr << "    linear_regression learn features_path model_path learning_method" << endl;
-    cerr << "    linear_regression predict features_path model_path predictions_path" << endl;
+    cerr << "    linear_regression predict features_path model_path" << endl;
+    cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << endl;
     cerr << "available learn modes:" << endl;
     cerr << "    fast_bslr for simple linear regression" << endl;
     cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
@@ -76,13 +88,29 @@ int DoPredict(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
 
-    ofstream predictionsOut(runData.PredictionsPath);
-    predictionsOut.precision(20);
+    cout.precision(20);
 
     const TLinearModel linearModel = TLinearModel::LoadFromFile(runData.ModelFilePath);
 
     for (const TInstance& instance : pool) {
-        predictionsOut << linearModel.Prediction(instance.Features) << "\n";
+        cout << instance.QueryId << "\t"
+             << instance.Goal << "\t"
+             << instance.Url << "\t"
+             << instance.Weight << "\t"
+             << linearModel.Prediction(instance.Features) << "\n";
+    }
+
+    return 0;
+}
+
+int DoInjurePool(const TRunData &runData) {
+    TPool pool;
+    pool.ReadFromFeatures(runData.FeaturesFilePath);
+
+    pool.InjurePool(runData.InjureFactor, runData.InjureOffset);
+
+    for (const TInstance& instance : pool) {
+        cout << instance.ToFeaturesString() << "\n";
     }
 
     return 0;
@@ -100,6 +128,9 @@ int main(int argc, const char** argv) {
     }
     if (runData.Mode == "predict") {
         return DoPredict(runData);
+    }
+    if (runData.Mode == "injure-pool") {
+        return DoInjurePool(runData);
     }
 
     return PrintHelp();

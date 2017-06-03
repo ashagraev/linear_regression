@@ -8,11 +8,15 @@
 using namespace std;
 
 struct TInstance {
+    string QueryId;
+    string Url;
+
     vector<double> Features;
     double Goal;
     double Weight;
 
     static TInstance FromFeaturesString(const string& featuresString);
+    string ToFeaturesString() const;
 };
 
 struct TPool : public vector<TInstance> {
