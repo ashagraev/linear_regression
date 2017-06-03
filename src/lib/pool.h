@@ -56,5 +56,5 @@ struct TPool : public vector<TInstance> {
     void ReadFromFeatures(const string& featuresPath);
     TCVIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
-    TPool InjurePool(const double injureFactir, const double injureOffset) const;
+    TPool InjurePool(const double injureFactor, const double injureOffset) const;
 };
