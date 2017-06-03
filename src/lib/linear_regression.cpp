@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace {
+namespace NLinearRegressionInner {
     inline void AddFeaturesProduct(const double weight, const vector<double>& features, vector<double>& linearizedOLSTriangleMatrix);
 
     vector<double> Solve(const vector<double>& olsMatrix, const vector<double>& olsVector);
@@ -24,7 +24,7 @@ void TFastLRSolver::Add(const vector<double>& features, const double goal, const
         OLSVector.resize(featuresCount + 1);
     }
 
-    AddFeaturesProduct(weight, features, LinearizedOLSMatrix);
+    NLinearRegressionInner::AddFeaturesProduct(weight, features, LinearizedOLSMatrix);
 
     const double weightedGoal = goal * weight;
     vector<double>::iterator olsVectorElement = OLSVector.begin();
@@ -84,7 +84,7 @@ void TWelfordLRSolver::Add(const vector<double>& features, const double goal, co
 
 TLinearModel TFastLRSolver::Solve() const {
     TLinearModel linearModel;
-    linearModel.Coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
+    linearModel.Coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
 
     if (!linearModel.Coefficients.empty()) {
         linearModel.Intercept = linearModel.Coefficients.back();
@@ -96,7 +96,7 @@ TLinearModel TFastLRSolver::Solve() const {
 
 TLinearModel TWelfordLRSolver::Solve() const {
     TLinearModel model;
-    model.Coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
+    model.Coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
     model.Intercept = GoalsMean;
 
     const size_t featuresCount = OLSVector.size();
@@ -108,13 +108,13 @@ TLinearModel TWelfordLRSolver::Solve() const {
 }
 
 double TFastLRSolver::SumSquaredErrors() const {
-    vector<double> coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
-    return ::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
+    vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
+    return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
 }
 
 double TWelfordLRSolver::SumSquaredErrors() const {
-    vector<double> coefficients = ::Solve(LinearizedOLSMatrix, OLSVector);
-    return ::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
+    vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
+    return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
 void TWelfordSLRSolver::Add(const double feature, const double goal, const double weight) {
@@ -142,7 +142,7 @@ double TWelfordSLRSolver::SumSquaredErrors(const double regularizationParameter)
     return factor * factor * FeaturesDeviation - 2 * factor * Covariation + GoalsDeviation;
 }
 
-namespace {
+namespace NLinearRegressionInner {
     // LDL matrix decomposition, see http://en.wikipedia.org/wiki/Cholesky_decomposition#LDL_decomposition_2
     bool LDLDecomposition(const vector<double>& linearizedOLSMatrix,
                           const double regularizationThreshold,
