@@ -67,7 +67,7 @@ std::string TInstance::ToSVMLightString() const {
     ss.precision(20);
 
     for (size_t featureIdx = 0; featureIdx < Features.size(); ++featureIdx) {
-        ss << " " << featureIdx << ":" << Features[featureIdx];
+        ss << " " << (featureIdx + 1) << ":" << Features[featureIdx];
     }
     ss << " # " << QueryId;
 
