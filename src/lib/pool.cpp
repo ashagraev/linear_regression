@@ -40,6 +40,21 @@ std::string TInstance::ToFeaturesString() const {
     return ss.str();
 }
 
+std::string TInstance::ToVowpalWabbitString() const {
+    stringstream ss;
+
+    ss << Goal << " ";
+    ss << Weight << " ";
+    ss << "|";
+
+    for (size_t featureIdx = 0; featureIdx < Features.size(); ++ featureIdx) {
+        ss << " " << featureIdx << ":" << Features[featureIdx];
+    }
+    ss << "\t" << QueryId;
+
+    return ss.str();
+}
+
 TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)
     : ParentPool(parentPool)
     , FoldsCount(foldsCount)

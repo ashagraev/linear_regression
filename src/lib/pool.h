@@ -17,6 +17,7 @@ struct TInstance {
 
     static TInstance FromFeaturesString(const string& featuresString);
     string ToFeaturesString() const;
+    string ToVowpalWabbitString() const;
 };
 
 struct TPool : public vector<TInstance> {
