@@ -62,8 +62,12 @@ int PrintHelp() {
     cerr << "usage:" << endl;
     cerr << "    linear_regression learn features_path model_path learning_method" << endl;
     cerr << "    linear_regression predict features_path model_path" << endl;
+    cerr << "    linear_regression cv features_path learning_method" << endl;
+    cerr << endl;
     cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << endl;
     cerr << "    linear_regression to-vowpal-wabbit features_path" << endl;
+    cerr << "    linear_regression to-svm-light features_path" << endl;
+    cerr << endl;
     cerr << "available learn modes:" << endl;
     cerr << "    fast_bslr for simple linear regression" << endl;
     cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
