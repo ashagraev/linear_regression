@@ -40,7 +40,7 @@ struct TRunData {
     }
 
     static bool ParametersAreCorrect(int argc, const char** argv) {
-        return (strcmp(argv[1], "predict") == 0 && argc == 4) || argc == 5;
+        return (argc > 1 && strcmp(argv[1], "predict") == 0 && argc == 4) || argc == 5;
     }
 };
 
