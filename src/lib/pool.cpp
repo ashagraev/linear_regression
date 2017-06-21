@@ -33,6 +33,8 @@ std::string TInstance::ToFeaturesString() const {
     ss << Url << "\t";
     ss << Weight;
 
+    ss.precision(20);
+
     for (const double feature : Features) {
         ss << "\t" << feature;
     }
@@ -46,6 +48,8 @@ std::string TInstance::ToVowpalWabbitString() const {
     ss << Goal << " ";
     ss << Weight << " ";
     ss << "|";
+
+    ss.precision(20);
 
     for (size_t featureIdx = 0; featureIdx < Features.size(); ++ featureIdx) {
         ss << " " << featureIdx << ":" << Features[featureIdx];
