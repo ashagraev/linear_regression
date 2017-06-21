@@ -107,13 +107,8 @@ int DoPredict(const TRunData &runData) {
 int DoInjurePool(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
-
     pool.InjurePool(runData.InjureFactor, runData.InjureOffset);
-
-    for (const TInstance& instance : pool) {
-        cout << instance.ToFeaturesString() << "\n";
-    }
-
+    pool.PrintForFeatures(cout);
     return 0;
 }
 

@@ -62,4 +62,7 @@ struct TPool : public vector<TInstance> {
     TCVIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
     TPool InjurePool(const double injureFactor, const double injureOffset) const;
+
+    void PrintForFeatures(ostream& out) const;
+    void PrintForVowpalWabbit(ostream& out) const;
 };

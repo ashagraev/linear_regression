@@ -148,3 +148,15 @@ TPool TPool::InjurePool(const double injureFactor, const double injureOffset) co
 
     return injuredPool;
 }
+
+void TPool::PrintForFeatures(ostream& out) const {
+    for (const TInstance& instance : *this) {
+        out << instance.ToFeaturesString() << "\n";
+    }
+}
+
+void TPool::PrintForVowpalWabbit(ostream& out) const {
+    for (const TInstance& instance : *this) {
+        out << instance.ToVowpalWabbitString() << "\n";
+    }
+}
