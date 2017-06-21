@@ -23,7 +23,5 @@ public:
 
     double GetMean() const;
     double GetDeviation() const;
-    double GetStdDev() const;
-
     double GetSumWeights() const;
 };

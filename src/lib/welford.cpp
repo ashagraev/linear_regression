@@ -31,14 +31,6 @@ double TDeviationCalculator::GetDeviation() const {
     return Deviation;
 }
 
-double TDeviationCalculator::GetStdDev() const {
-    const double sumWeights = GetSumWeights();
-    if (!sumWeights) {
-        return 0.;
-    }
-    return sqrt(GetDeviation() / sumWeights);
-}
-
 double TDeviationCalculator::GetSumWeights() const {
     return MeanCalculator.GetSumWeights();
 }
