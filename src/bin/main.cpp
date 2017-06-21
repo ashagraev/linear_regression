@@ -49,7 +49,9 @@ struct TRunData {
         if (strcmp(argv[1], "predict") == 0) {
             return argc == 4;
         }
-        if (strcmp(argv[1], "to-vowpal-wabbit") == 0) {
+        if (strcmp(argv[1], "to-vowpal-wabbit") == 0 ||
+            strcmp(argv[1], "to-svm-light") == 0)
+        {
             return argc == 3;
         }
         return argc == 5;
@@ -132,6 +134,13 @@ int ToVowpalWabbit(const TRunData &runData) {
     return 0;
 }
 
+int ToSVMLight(const TRunData &runData) {
+    TPool pool;
+    pool.ReadFromFeatures(runData.FeaturesFilePath);
+    pool.PrintForSVMLight(cout);
+    return 0;
+}
+
 int main(int argc, const char** argv) {
     if (!TRunData::ParametersAreCorrect(argc, argv)) {
         return PrintHelp();
@@ -150,6 +159,9 @@ int main(int argc, const char** argv) {
     }
     if (runData.Mode == "to-vowpal-wabbit") {
         return ToVowpalWabbit(runData);
+    }
+    if (runData.Mode == "to-svm-light") {
+        return ToSVMLight(runData);
     }
 
     return PrintHelp();

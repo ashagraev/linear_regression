@@ -18,6 +18,7 @@ struct TInstance {
     static TInstance FromFeaturesString(const string& featuresString);
     string ToFeaturesString() const;
     string ToVowpalWabbitString() const;
+    string ToSVMLightString() const;
 };
 
 struct TPool : public vector<TInstance> {
@@ -65,4 +66,5 @@ struct TPool : public vector<TInstance> {
 
     void PrintForFeatures(ostream& out) const;
     void PrintForVowpalWabbit(ostream& out) const;
+    void PrintForSVMLight(ostream& out) const;
 };

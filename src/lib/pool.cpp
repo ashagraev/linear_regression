@@ -59,6 +59,21 @@ std::string TInstance::ToVowpalWabbitString() const {
     return ss.str();
 }
 
+std::string TInstance::ToSVMLightString() const {
+    stringstream ss;
+
+    ss << Goal;
+
+    ss.precision(20);
+
+    for (size_t featureIdx = 0; featureIdx < Features.size(); ++featureIdx) {
+        ss << " " << featureIdx << ":" << Features[featureIdx];
+    }
+    ss << " # " << QueryId;
+
+    return ss.str();
+}
+
 TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)
     : ParentPool(parentPool)
     , FoldsCount(foldsCount)
@@ -158,5 +173,11 @@ void TPool::PrintForFeatures(ostream& out) const {
 void TPool::PrintForVowpalWabbit(ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToVowpalWabbitString() << "\n";
+    }
+}
+
+void TPool::PrintForSVMLight(ostream& out) const {
+    for (const TInstance& instance : *this) {
+        out << instance.ToSVMLightString() << "\n";
     }
 }
