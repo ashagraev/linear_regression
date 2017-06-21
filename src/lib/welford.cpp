@@ -16,3 +16,29 @@ double TMeanCalculator::GetMean() const {
 double TMeanCalculator::GetSumWeights() const {
     return SumWeights;
 }
+
+void TDeviationCalculator::Add(const double value, const double weight /*= 1.*/) {
+    const double lastMean = MeanCalculator.GetMean();
+    MeanCalculator.Add(value, weight);
+    Deviation += weight * (value - lastMean) * (value - MeanCalculator.GetMean());
+}
+
+double TDeviationCalculator::GetMean() const {
+    return MeanCalculator.GetMean();
+}
+
+double TDeviationCalculator::GetDeviation() const {
+    return Deviation;
+}
+
+double TDeviationCalculator::GetStdDev() const {
+    const double sumWeights = GetSumWeights();
+    if (!sumWeights) {
+        return 0.;
+    }
+    return sqrt(GetDeviation() / sumWeights);
+}
+
+double TDeviationCalculator::GetSumWeights() const {
+    return MeanCalculator.GetSumWeights();
+}
