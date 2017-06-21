@@ -42,7 +42,17 @@ struct TRunData {
     }
 
     static bool ParametersAreCorrect(int argc, const char** argv) {
-        return (argc > 1 && strcmp(argv[1], "predict") == 0 && argc == 4) || argc == 5;
+        if (argc == 1) {
+            return false;
+        }
+
+        if (strcmp(argv[1], "predict") == 0) {
+            return argc == 4;
+        }
+        if (strcmp(argv[1], "to-vowpal-wabbit") == 0) {
+            return argc == 3;
+        }
+        return argc == 5;
     }
 };
 
