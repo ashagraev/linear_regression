@@ -26,10 +26,10 @@ struct TLinearModel {
 };
 
 template <typename TSolver>
-TLinearModel Solve(const TPool& pool) {
+TLinearModel Solve(const TPool::TCVIterator& iterator) {
     TSolver solver;
-    for (const TInstance& instance : pool) {
-        solver.Add(instance.Features, instance.Goal, instance.Weight);
+    for (; iterator.IsValid(); iterator.Advance()) {
+        solver.Add(iterator->Features, iterator->Goal, iterator->Weight);
     }
     return solver.Solve();
 }

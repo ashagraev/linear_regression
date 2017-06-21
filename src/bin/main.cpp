@@ -82,21 +82,23 @@ int DoLearn(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
 
+    TPool::TCVIterator learnIterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+
     TLinearModel linearModel;
     if (runData.LearningMode == "fast_bslr") {
-        linearModel = Solve<TFastBestSLRSolver>(pool);
+        linearModel = Solve<TFastBestSLRSolver>(learnIterator);
     }
     if (runData.LearningMode == "kahan_bslr") {
-        linearModel = Solve<TKahanBestSLRSolver>(pool);
+        linearModel = Solve<TKahanBestSLRSolver>(learnIterator);
     }
     if (runData.LearningMode == "welford_bslr") {
-        linearModel = Solve<TWelfordBestSLRSolver>(pool);
+        linearModel = Solve<TWelfordBestSLRSolver>(learnIterator);
     }
     if (runData.LearningMode == "fast_lr") {
-        linearModel = Solve<TFastLRSolver>(pool);
+        linearModel = Solve<TFastLRSolver>(learnIterator);
     }
     if (runData.LearningMode == "welford_lr") {
-        linearModel = Solve<TWelfordLRSolver>(pool);
+        linearModel = Solve<TWelfordLRSolver>(learnIterator);
     }
 
     linearModel.SaveToFile(runData.ModelFilePath);
