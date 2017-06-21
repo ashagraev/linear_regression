@@ -158,7 +158,6 @@ TPool TPool::InjurePool(const double injureFactor, const double injureOffset) co
         for (double& feature : instance.Features) {
             feature = feature * injureFactor + injureOffset;
         }
-        instance.Goal = instance.Goal * injureFactor + injureOffset;
     }
 
     return injuredPool;
