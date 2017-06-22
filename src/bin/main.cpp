@@ -144,9 +144,20 @@ int DoPredict(const TRunData &runData) {
 }
 
 int DoCrossValidation(const TRunData &runData) {
-    (void) runData;
-    //TPool pool;
-    //pool.ReadFromFeatures(runData.FeaturesFilePath);
+    TPool pool;
+    pool.ReadFromFeatures(runData.FeaturesFilePath);
+
+    const size_t foldsCount = 10;
+
+    TPool::TPoolIterator learnIterator = pool.LearnIterator(foldsCount);
+    TPool::TPoolIterator testIterator = pool.TestIterator(foldsCount);
+
+    for (size_t fold = 0; fold < foldsCount; ++fold) {
+        learnIterator.SetTestFold(fold);
+        testIterator.SetTestFold(fold);
+
+    }
+
     return 0;
 }
 
