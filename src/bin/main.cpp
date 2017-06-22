@@ -22,8 +22,6 @@ struct TRunData {
 
         runData.Mode = argv[1];
 
-        runData.FeaturesFilePath = argv[2];
-
         if (argc > 2) {
             runData.FeaturesFilePath = argv[2];
         }
@@ -69,21 +67,13 @@ struct TRunData {
 };
 
 int PrintHelp() {
-    cerr << "usage:" << endl;
-    cerr << "    linear_regression learn features_path model_path learning_method" << endl;
-    cerr << "    linear_regression predict features_path model_path" << endl;
-    cerr << "    linear_regression cv features_path learning_method" << endl;
-    cerr << endl;
-    cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << endl;
-    cerr << "    linear_regression to-vowpal-wabbit features_path" << endl;
-    cerr << "    linear_regression to-svm-light features_path" << endl;
-    cerr << endl;
-    cerr << "available learn modes:" << endl;
-    cerr << "    fast_bslr for simple linear regression" << endl;
-    cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
-    cerr << "    welford_bslr for simple linear regression with Welford's method" << endl;
-    cerr << "    fast_lr for fast linear regression" << endl;
-    cerr << "    welford_lr for linear regression with Welford's method" << endl;
+    std::cerr << "usage:" << std::endl;
+    std::cerr << "    linear_regression learn features_path model_path learning_method" << std::endl;
+    std::cerr << "    linear_regression predict features_path model_path" << std::endl;
+    std::cerr << "    linear_regression cv features_path learning_method" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << std::endl;
+    std::cerr << "    linear_regression to-vowpal-wabbit features_path" << std::endl;
     std::cerr << "    linear_regression to-svm-light features_path" << std::endl;
     std::cerr << std::endl;
     std::cerr << "    linear_regression test" << std::endl;
@@ -176,6 +166,7 @@ int ToSVMLight(const TRunData &runData) {
 
 int DoTest() {
     std::mt19937 mersenne;
+    std::normal_distribution<double> randGen;
 
     const std::vector<double> actualCoefficients = {1., -2., 3., 0., 3., 1., 8., 0.1, -0.1};
 
