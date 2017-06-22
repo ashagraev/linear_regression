@@ -24,9 +24,9 @@ struct TLinearModel {
 };
 
 template <typename TSolver>
-TLinearModel Solve(const TPool::TCVIterator& iterator) {
+TLinearModel Solve(TPool::TCVIterator& iterator) {
     TSolver solver;
-    for (; iterator.IsValid(); iterator.Advance()) {
+    for (; iterator.IsValid(); ++iterator) {
         solver.Add(iterator->Features, iterator->Goal, iterator->Weight);
     }
     return solver.Solve();
