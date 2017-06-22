@@ -254,12 +254,14 @@ int DoTest() {
         }
     }
 
-    TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
-    TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
-    TLinearModel wbslrModel = Solve<TWelfordBestSLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+    TPool::TCVIterator learnIterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
 
-    TLinearModel flrModel = Solve<TFastLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
-    TLinearModel wlrModel = Solve<TWelfordLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+    TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(learnIterator);
+    TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(learnIterator);
+    TLinearModel wbslrModel = Solve<TWelfordBestSLRSolver>(learnIterator);
+
+    TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
+    TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
 
     for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
         const double present = flrModel.Coefficients[fIdx];
