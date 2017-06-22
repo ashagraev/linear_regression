@@ -1,3 +1,1 @@
-*.features linguist-language=cpp
-*.svm linguist-language=cpp
-*.vw linguist-language=cpp
+data linguist-vendored=false
