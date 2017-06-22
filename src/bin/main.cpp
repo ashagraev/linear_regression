@@ -208,26 +208,38 @@ int DoTest() {
         for (size_t fold = 0; fold < foldsCount; ++fold) {
             learnIterator.SetTestFold(0);
             testIterator.SetTestFold(0);
+            std::unordered_set<size_t>& currentLearnIndexes = learnIndexes[fold];
+            std::unordered_set<size_t>& currentTestIndexes = testIndexes[fold];
 
             for (; learnIterator.IsValid(); ++learnIterator) {
-                learnIndexes[fold].insert(learnIterator.GetInstanceIdx());
+                currentLearnIndexes.insert(learnIterator.GetInstanceIdx());
             }
             for (; testIterator.IsValid(); ++testIterator) {
-                testIndexes[fold].insert(testIterator.GetInstanceIdx());
-                if (learnIndexes[fold].find(testIterator.GetInstanceIdx()) != learnIndexes[fold].end()) {
+                currentTestIndexes.insert(testIterator.GetInstanceIdx());
+                if (currentLearnIndexes.find(testIterator.GetInstanceIdx()) != currentLearnIndexes.end()) {
                     std::cerr << "got iterators error: test instance " << testIterator.GetInstanceIdx() << " is in learn set" << std::endl;
                     ++errorsCount;
                 }
             }
 
-            if (learnIndexes[fold].size() + testIndexes[fold].size() != pool.size()) {
+            if (currentLearnIndexes.size() + currentTestIndexes.size() != pool.size()) {
                 std::cerr << "got iterators error: learn + test size unequal to pool size on fold " << fold
-                          << "; learn: " << learnIndexes[fold].size()
-                          << ", test: " << testIndexes[fold].size()
+                          << "; learn: " << currentLearnIndexes.size()
+                          << ", test: " << currentTestIndexes.size()
                           << ", needed: " << pool.size()
                           << std::endl;
                 ++errorsCount;
             }
+        }
+
+        std::unordered_set<size_t> allTestIndexes;
+        for (const std::unordered_set<size_t>& sampleTestIndexes : testIndexes) {
+            allTestIndexes.insert(sampleTestIndexes.begin(), sampleTestIndexes.end());
+        }
+
+        if (allTestIndexes.size() != pool.size()) {
+            std::cerr << "got error: union of all test sets unequal to original pool: got " << allTestIndexes.size() << " while " << pool.size() << " are needed" << std::endl;
+            ++errorsCount;
         }
     }
 
