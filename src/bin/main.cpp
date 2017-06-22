@@ -166,6 +166,8 @@ int DoCrossValidation(const TRunData &runData) {
         meanRMSECalculator.Add(rmse);
     }
 
+    std::cout << "CV RMSE: " << meanRMSECalculator.GetMean() << std::endl;
+
     return 0;
 }
 
