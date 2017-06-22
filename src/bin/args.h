@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+#include <sstream>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 class TArgParser {
 public:
@@ -17,19 +21,22 @@ public:
     {
     }
 
-    void SetValue(const TValue& arg) override {
-        *Target = arg;
+    void SetValue(const std::string& arg) override {
+        std::stringstream ss(arg);
+        ss >> *Target;
     }
 };
 
 class TArgsParser {
 private:
-    vector<std::string> 
+    std::vector<std::string> ArgumentNames;
     std::unordered_map<std::string, std::shared_ptr<TArgParser> > Parsers;
 public:
     template <typename TValue>
-    void AddHandler(const std::string& key, TValue* target) {
-        Parsers["--" + key] = new TSomeArgParser<TValue>(target));
+    void AddHandler(std::string key, TValue* target) {
+        key = "--" + key;
+        ArgumentNames.push_back(key);
+        Parsers[key] = std::shared_ptr<TArgParser>(new TSomeArgParser<TValue>(target));
     }
 
     void DoParse(int argc, const char** argv) const;

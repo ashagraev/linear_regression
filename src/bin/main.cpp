@@ -20,58 +20,6 @@ struct TRunData {
 
     double InjureFactor = 1.;
     double InjureOffset = 0.;
-
-    static TRunData Load(int argc, const char** argv) {
-        TArgsParser argsParser;
-
-        TRunData runData;
-
-        runData.Mode = argv[1];
-
-        if (argc > 2) {
-            runData.FeaturesFilePath = argv[2];
-        }
-
-        if (runData.Mode == "cv") {
-            runData.LearningMode = argv[3];
-        } else if (argc > 3) {
-            runData.ModelFilePath = argv[3];
-        }
-
-        if (argc > 4) {
-            runData.LearningMode = argv[4];
-            runData.PredictionsPath = argv[4];
-            try {
-                runData.InjureFactor = atof(argv[3]);
-                runData.InjureOffset = atof(argv[4]);
-            } catch (...) {
-                runData.InjureFactor = 1.;
-                runData.InjureOffset = 0.;
-            }
-        }
-
-        return runData;
-    }
-
-    static bool ParametersAreCorrect(int argc, const char** argv) {
-        if (argc == 1) {
-            return false;
-        }
-        if (strcmp(argv[1], "test") == 0) {
-            return argc == 2;
-        }
-        if (strcmp(argv[1], "predict") == 0 ||
-            strcmp(argv[1], "cv") == 0)
-        {
-            return argc == 4;
-        }
-        if (strcmp(argv[1], "to-vowpal-wabbit") == 0 ||
-            strcmp(argv[1], "to-svm-light") == 0)
-        {
-            return argc == 3;
-        }
-        return argc == 5;
-    }
 };
 
 int PrintHelp() {
@@ -96,45 +44,67 @@ int PrintHelp() {
     return 1;
 }
 
-TLinearModel Solve(TPool::TPoolIterator iterator, const TRunData& runData) {
+TLinearModel Solve(TPool::TPoolIterator iterator, const std::string& learningMode) {
     TLinearModel linearModel;
-    if (runData.LearningMode == "fast_bslr") {
+    if (learningMode == "fast_bslr") {
         linearModel = Solve<TFastBestSLRSolver>(iterator);
     }
-    if (runData.LearningMode == "kahan_bslr") {
+    if (learningMode == "kahan_bslr") {
         linearModel = Solve<TKahanBestSLRSolver>(iterator);
     }
-    if (runData.LearningMode == "welford_bslr") {
+    if (learningMode == "welford_bslr") {
         linearModel = Solve<TWelfordBestSLRSolver>(iterator);
     }
-    if (runData.LearningMode == "fast_lr") {
+    if (learningMode == "fast_lr") {
         linearModel = Solve<TFastLRSolver>(iterator);
     }
-    if (runData.LearningMode == "welford_lr") {
+    if (learningMode == "welford_lr") {
         linearModel = Solve<TWelfordLRSolver>(iterator);
     }
     return linearModel;
 }
 
-int DoLearn(const TRunData &runData) {
+int DoLearn(int argc, const char** argv) {
+    std::string featuresPath;
+    std::string learningMode;
+    std::string modelPath;
+
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath);
+        argsParser.AddHandler("learning-mode", &learningMode);
+        argsParser.AddHandler("model", &modelPath);
+        argsParser.DoParse(argc, argv);
+    }
+
     TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
+    pool.ReadFromFeatures(featuresPath);
 
     TPool::TPoolIterator learnIterator = pool.LearnIterator();
 
-    const TLinearModel linearModel = Solve(learnIterator, runData);
-    linearModel.SaveToFile(runData.ModelFilePath);
+    const TLinearModel linearModel = Solve(learnIterator, learningMode);
+    linearModel.SaveToFile(modelPath);
 
     return 0;
 }
 
-int DoPredict(const TRunData &runData) {
+int DoPredict(int argc, const char** argv) {
+    std::string featuresPath;
+    std::string modelPath;
+
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath);
+        argsParser.AddHandler("model", &modelPath);
+        argsParser.DoParse(argc, argv);
+    }
+
     TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
+    pool.ReadFromFeatures(featuresPath);
 
     std::cout.precision(20);
 
-    const TLinearModel linearModel = TLinearModel::LoadFromFile(runData.ModelFilePath);
+    const TLinearModel linearModel = TLinearModel::LoadFromFile(modelPath);
 
     for (const TInstance& instance : pool) {
         std::cout << instance.QueryId << "\t"
@@ -147,11 +117,21 @@ int DoPredict(const TRunData &runData) {
     return 0;
 }
 
-int DoCrossValidation(const TRunData &runData) {
-    TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
+int DoCrossValidation(int argc, const char** argv) {
+    std::string featuresPath;
+    std::string learningMode;
+    size_t foldsCount;
 
-    const size_t foldsCount = 10;
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath);
+        argsParser.AddHandler("learning-mode", &learningMode);
+        argsParser.AddHandler("folds", &foldsCount);
+        argsParser.DoParse(argc, argv);
+    }
+
+    TPool pool;
+    pool.ReadFromFeatures(featuresPath);
 
     TPool::TPoolIterator learnIterator = pool.LearnIterator(foldsCount);
     TPool::TPoolIterator testIterator = pool.TestIterator(foldsCount);
@@ -161,7 +141,7 @@ int DoCrossValidation(const TRunData &runData) {
         learnIterator.SetTestFold(fold);
         testIterator.SetTestFold(fold);
 
-        const TLinearModel linearModel = Solve(learnIterator, runData);
+        const TLinearModel linearModel = Solve(learnIterator, learningMode);
         const double rmse = RMSE(testIterator, linearModel);
 
         std::cout << "fold #" << fold << ": RMSE = " << rmse << std::endl;
@@ -174,57 +154,82 @@ int DoCrossValidation(const TRunData &runData) {
     return 0;
 }
 
-int DoInjurePool(const TRunData &runData) {
+int DoInjurePool(int argc, const char** argv) {
+    std::string featuresPath;
+    double injureFactor;
+    double injureOffset;
+
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath);
+        argsParser.AddHandler("injure-factor", &injureFactor);
+        argsParser.AddHandler("injure-offset", &injureOffset);
+        argsParser.DoParse(argc, argv);
+    }
+
     TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
-    pool.InjurePool(runData.InjureFactor, runData.InjureOffset);
+    pool.ReadFromFeatures(featuresPath);
+    pool.InjurePool(injureFactor, injureOffset);
     pool.PrintForFeatures(std::cout);
     return 0;
 }
 
-int ToVowpalWabbit(const TRunData &runData) {
+int ToVowpalWabbit(int argc, const char** argv) {
+    std::string featuresPath;
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath);
+        argsParser.DoParse(argc, argv);
+    }
+
     TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
+    pool.ReadFromFeatures(featuresPath);
     pool.PrintForVowpalWabbit(std::cout);
     return 0;
 }
 
-int ToSVMLight(const TRunData &runData) {
+int ToSVMLight(int argc, const char** argv) {
+    std::string featuresPath;
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath);
+        argsParser.DoParse(argc, argv);
+    }
+
     TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
+    pool.ReadFromFeatures(featuresPath);
     pool.PrintForSVMLight(std::cout);
     return 0;
 }
 
 int main(int argc, const char** argv) {
-    if (!TRunData::ParametersAreCorrect(argc, argv)) {
-        return PrintHelp();
+    if (argc < 2) {
+        PrintHelp();
     }
 
-    TRunData runData = TRunData::Load(argc, argv);
-
-    if (runData.Mode == "learn") {
-        return DoLearn(runData);
+    const std::string mode = argv[1];
+    if (mode == "learn") {
+        return DoLearn(argc, argv);
     }
-    if (runData.Mode == "predict") {
-        return DoPredict(runData);
+    if (mode == "predict") {
+        return DoPredict(argc, argv);
     }
-    if (runData.Mode == "cv") {
-        return DoCrossValidation(runData);
-    }
-
-    if (runData.Mode == "injure-pool") {
-        return DoInjurePool(runData);
+    if (mode == "cv") {
+        return DoCrossValidation(argc, argv);
     }
 
-    if (runData.Mode == "to-vowpal-wabbit") {
-        return ToVowpalWabbit(runData);
-    }
-    if (runData.Mode == "to-svm-light") {
-        return ToSVMLight(runData);
+    if (mode == "injure-pool") {
+        return DoInjurePool(argc, argv);
     }
 
-    if (runData.Mode == "test") {
+    if (mode == "to-vowpal-wabbit") {
+        return ToVowpalWabbit(argc, argv);
+    }
+    if (mode == "to-svm-light") {
+        return ToSVMLight(argc, argv);
+    }
+
+    if (mode == "test") {
         return DoTest();
     }
 
