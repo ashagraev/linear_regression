@@ -168,7 +168,7 @@ int DoTest() {
     std::mt19937 mersenne;
     std::normal_distribution<double> randGen;
 
-    const std::vector<double> actualCoefficients = {1., -2., 3., 0., 3., 1., 8., 0.1, -0.1};
+    const std::vector<double> actualCoefficients = {1., -2., 3., 0., 3., 1., 8., 0.1, -0.1, 0., -50.};
 
     const size_t instancesCount = 1000;
     const size_t featuresCount = actualCoefficients.size();
