@@ -154,6 +154,14 @@ size_t TPool::TCVIterator::GetInstanceIdx() const {
     return Current - InstanceFoldNumbers.begin();
 }
 
+size_t TPool::FeaturesCount() const {
+    if (this->empty()) {
+        return 0;
+    }
+
+    return this->front().Features.size();
+}
+
 void TPool::ReadFromFeatures(const std::string& featuresPath) {
     std::ifstream featuresIn(featuresPath);
 

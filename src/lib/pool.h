@@ -60,6 +60,8 @@ struct TPool : public std::vector<TInstance> {
         bool TakeCurrent() const;
     };
 
+    size_t FeaturesCount() const;
+
     void ReadFromFeatures(const std::string& featuresPath);
     TCVIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
