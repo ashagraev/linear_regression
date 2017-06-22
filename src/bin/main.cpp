@@ -57,12 +57,13 @@ struct TRunData {
         if (strcmp(argv[1], "test") == 0) {
             return argc == 2;
         }
-        if (strcmp(argv[1], "predict") == 0) {
+        if (strcmp(argv[1], "predict") == 0 ||
+            strcmp(argv[1], "cv") == 0)
+        {
             return argc == 4;
         }
         if (strcmp(argv[1], "to-vowpal-wabbit") == 0 ||
-            strcmp(argv[1], "to-svm-light") == 0 ||
-            strcmp(argv[1], "cv") == 0)
+            strcmp(argv[1], "to-svm-light") == 0)
         {
             return argc == 3;
         }
