@@ -192,7 +192,9 @@ namespace {
     }
 }
 
-int DoTest() {
+int DoTest(int argc, const char** argv) {
+    (void) (argc && argv);
+
     TPool pool = MakeRandomPool();
 
     size_t errorsCount = 0;
