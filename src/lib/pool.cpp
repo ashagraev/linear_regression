@@ -156,7 +156,9 @@ void TPool::ReadFromFeatures(const std::string& featuresPath) {
 }
 
 TPool::TCVIterator TPool::CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const {
-    return TPool::TCVIterator(*this, foldsCount, iteratorType);
+    TPool::TCVIterator result(*this, foldsCount, iteratorType);
+    result.ResetShuffle();
+    return result;
 }
 
 TPool TPool::InjurePool(const double injureFactor, const double injureOffset) const {
