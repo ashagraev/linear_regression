@@ -52,6 +52,8 @@ struct TPool : public std::vector<TInstance> {
         const TInstance& operator * () const;
         const TInstance* operator ->() const;
         TPool::TCVIterator& operator++();
+
+        size_t GetInstanceIdx() const;
     private:
         void Advance();
         bool TakeCurrent() const;

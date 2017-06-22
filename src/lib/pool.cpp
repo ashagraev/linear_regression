@@ -137,6 +137,10 @@ bool TPool::TCVIterator::TakeCurrent() const {
     return false;
 }
 
+size_t TPool::TCVIterator::GetInstanceIdx() const {
+    return Current - InstanceFoldNumbers.begin();
+}
+
 void TPool::ReadFromFeatures(const std::string& featuresPath) {
     std::ifstream featuresIn(featuresPath);
 
