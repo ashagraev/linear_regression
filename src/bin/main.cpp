@@ -220,10 +220,10 @@ int DoTest() {
                 }
             }
 
-            if (learnIndexes.size() + testIndexes.size() != pool.size()) {
+            if (learnIndexes[fold].size() + testIndexes[fold].size() != pool.size()) {
                 std::cerr << "got iterators error: learn + test size unequal to pool size on fold " << fold
-                          << "; learn: " << learnIndexes.size()
-                          << ", test: " << testIndexes.size()
+                          << "; learn: " << learnIndexes[fold].size()
+                          << ", test: " << testIndexes[fold].size()
                           << ", needed: " << pool.size()
                           << std::endl;
                 ++errorsCount;
@@ -259,7 +259,9 @@ int DoTest() {
         }
     }
 
-    std::cerr << std::endl;
+    if (errorsCount) {
+        std::cerr << std::endl;
+    }
     std::cerr << "total errors count: " << errorsCount << std::endl;
 
     return errorsCount;
