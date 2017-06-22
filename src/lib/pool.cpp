@@ -144,8 +144,8 @@ void TPool::TPoolIterator::Advance() {
 
 bool TPool::TPoolIterator::TakeCurrent() const {
     switch (IteratorType) {
-    case LearnIterator: return *Current != TestFoldNumber;
-    case TestIterator: return *Current == TestFoldNumber;
+    case IT_LEARN: return *Current != TestFoldNumber;
+    case IT_TEST: return *Current == TestFoldNumber;
     }
     return false;
 }

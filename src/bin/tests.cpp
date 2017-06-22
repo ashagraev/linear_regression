@@ -48,7 +48,7 @@ namespace {
     int DoTestIterators(const TPool& pool) {
         size_t errorsCount = 0;
 
-        TPool::TPoolIterator iterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+        TPool::TPoolIterator iterator = pool.CrossValidationIterator(1, TPool::IT_LEARN);
         for (size_t i = 0; i < pool.size(); ++i, ++iterator) {
             if (iterator.GetInstanceIdx() != i) {
                 std::cerr << "got error in instance idx for CV iterator on step " << i << std::endl;
@@ -73,8 +73,8 @@ namespace {
 
         const size_t foldsCount = 10;
 
-        TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(foldsCount, TPool::LearnIterator);
-        TPool::TPoolIterator testIterator = pool.CrossValidationIterator(foldsCount, TPool::TestIterator);
+        TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(foldsCount, TPool::IT_LEARN);
+        TPool::TPoolIterator testIterator = pool.CrossValidationIterator(foldsCount, TPool::IT_TEST);
 
         std::vector<std::unordered_set<size_t> > learnIndexes(foldsCount);
         std::vector<std::unordered_set<size_t> > testIndexes(foldsCount);
@@ -123,7 +123,7 @@ namespace {
     }
 
     int DoTestLRModels(const TPool& pool) {
-        TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+        TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(1, TPool::IT_LEARN);
 
         TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(learnIterator);
         TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(learnIterator);
@@ -132,12 +132,12 @@ namespace {
         TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
         TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
 
-        const double fbslrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), fbslrModel);
-        const double kbslrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), kbslrModel);
-        const double wbslrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), wbslrModel);
+        const double fbslrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::IT_LEARN), fbslrModel);
+        const double kbslrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::IT_LEARN), kbslrModel);
+        const double wbslrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::IT_LEARN), wbslrModel);
 
-        const double flrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), flrModel);
-        const double wlrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), wlrModel);
+        const double flrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::IT_LEARN), flrModel);
+        const double wlrRMSE = RMSE(pool.CrossValidationIterator(1, TPool::IT_LEARN), wlrModel);
 
         size_t errorsCount = 0;
 

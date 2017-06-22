@@ -21,8 +21,8 @@ struct TInstance {
 
 struct TPool : public std::vector<TInstance> {
     enum EIteratorType {
-        LearnIterator,
-        TestIterator,
+        IT_LEARN,
+        IT_TEST,
     };
 
     class TPoolIterator {
@@ -63,11 +63,12 @@ struct TPool : public std::vector<TInstance> {
     size_t FeaturesCount() const;
 
     void ReadFromFeatures(const std::string& featuresPath);
-    TPoolIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
     TPool InjurePool(const double injureFactor, const double injureOffset) const;
 
     void PrintForFeatures(std::ostream& out) const;
     void PrintForVowpalWabbit(std::ostream& out) const;
     void PrintForSVMLight(std::ostream& out) const;
+
+    TPoolIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 };
