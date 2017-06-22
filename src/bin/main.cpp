@@ -92,12 +92,7 @@ int PrintHelp() {
     return 1;
 }
 
-int DoLearn(const TRunData &runData) {
-    TPool pool;
-    pool.ReadFromFeatures(runData.FeaturesFilePath);
-
-    TPool::TPoolIterator learnIterator = pool.LearnIterator();
-
+TLinearModel Solve(TPool::TPoolIterator iterator, const TRunData& runData) {
     TLinearModel linearModel;
     if (runData.LearningMode == "fast_bslr") {
         linearModel = Solve<TFastBestSLRSolver>(learnIterator);
@@ -114,7 +109,16 @@ int DoLearn(const TRunData &runData) {
     if (runData.LearningMode == "welford_lr") {
         linearModel = Solve<TWelfordLRSolver>(learnIterator);
     }
+    return linearModel;
+}
 
+int DoLearn(const TRunData &runData) {
+    TPool pool;
+    pool.ReadFromFeatures(runData.FeaturesFilePath);
+
+    TPool::TPoolIterator learnIterator = pool.LearnIterator();
+
+    const TLinearModel linearModel = Solve(learnIterator, runData);
     linearModel.SaveToFile(runData.ModelFilePath);
 
     return 0;
