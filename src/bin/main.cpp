@@ -197,35 +197,15 @@ int ToSVMLight(int argc, const char** argv) {
 }
 
 int main(int argc, const char** argv) {
-    if (argc < 2) {
-        PrintHelp();
-    }
+    TModeChooser modeChooser;
 
-    const std::string mode = argv[1];
-    if (mode == "learn") {
-        return DoLearn(argc, argv);
-    }
-    if (mode == "predict") {
-        return DoPredict(argc, argv);
-    }
-    if (mode == "cv") {
-        return DoCrossValidation(argc, argv);
-    }
+    modeChooser.Add("learn", &DoLearn, "learn model from features");
+    modeChooser.Add("predict", &DoPredict, "apply learned model to features");
+    modeChooser.Add("cv", &DoCrossValidation, "run cross-validation check");
+    modeChooser.Add("injure-pool", &DoInjurePool, "create injured pool from source features");
+    modeChooser.Add("to-vowpal-wabbit", &ToVowpalWabbit, "create VowpalWabbit-compatible pool");
+    modeChooser.Add("to-svm-light", &ToSVMLight, "create SVMLight-compatible pool");
+    modeChooser.Add("test", &DoTest, "run tests");
 
-    if (mode == "injure-pool") {
-        return DoInjurePool(argc, argv);
-    }
-
-    if (mode == "to-vowpal-wabbit") {
-        return ToVowpalWabbit(argc, argv);
-    }
-    if (mode == "to-svm-light") {
-        return ToSVMLight(argc, argv);
-    }
-
-    if (mode == "test") {
-        return DoTest();
-    }
-
-    return PrintHelp();
+    return modeChooser.Run(argc, argv);
 }
