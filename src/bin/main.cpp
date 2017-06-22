@@ -195,6 +195,7 @@ int main(int argc, const char** argv) {
     if (runData.Mode == "to-svm-light") {
         return ToSVMLight(runData);
     }
+
     if (runData.Mode == "test") {
         return DoTest();
     }
