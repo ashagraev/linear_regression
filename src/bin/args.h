@@ -49,3 +49,24 @@ public:
     void DoParse(int argc, const char** argv) const;
     void PrintHelp() const;
 };
+
+class TModeChooser {
+private:
+    struct TFuncInfo {
+        std::string Argument;
+        std::string Description;
+    };
+
+    using TMainFunc = int(int argc, const char** argv);
+
+    std::vector<TFuncInfo> FunctionInfos;
+    std::unordered_map<std::string, TMainFunc*> Functions;
+public:
+    void Add(const std::string& arg, TMainFunc* function, const std::string description) {
+        FunctionInfos.push_back({arg, description});
+        Functions[arg] = function;
+    }
+
+    int Run(int argc, const char** argv);
+    void PrintHelp() const;
+};

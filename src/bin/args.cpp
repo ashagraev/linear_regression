@@ -77,3 +77,42 @@ void TArgsParser::PrintHelp() const {
         std::cerr << line.str() << std::endl;
     }
 }
+
+int TModeChooser::Run(int argc, const char** argv) {
+    if (argc < 2) {
+        PrintHelp();
+        exit(1);
+    }
+
+    const std::string arg = argv[1];
+    auto mainFunc = Functions.find(arg);
+    if (mainFunc == Functions.end()) {
+        std::cerr << "unknown mode: " << arg << std::endl;
+        std::cerr << std::endl;
+        PrintHelp();
+        exit(1);
+    }
+
+    return (*mainFunc->second)(argc - 2, argv + 2);
+}
+
+void TModeChooser::PrintHelp() const {
+    size_t maxKeyLength = 0;
+    for (const TFuncInfo& funcInfo : FunctionInfos) {
+        maxKeyLength = std::max(maxKeyLength, funcInfo.Argument.length());
+    }
+
+    std::cerr << "available modes:" << std::endl;
+    for (const TFuncInfo& funcInfo : FunctionInfos) {
+        std::stringstream line;
+        line << "    " << funcInfo.Argument;
+        for (size_t i = funcInfo.Argument.length(); i < maxKeyLength + 8; ++i) {
+            line << " ";
+        }
+
+        line << funcInfo.Description;
+
+        std::cerr << line.str() << std::endl;
+    }
+
+}
