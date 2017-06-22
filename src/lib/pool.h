@@ -25,7 +25,7 @@ struct TPool : public std::vector<TInstance> {
         TestIterator,
     };
 
-    class TCVIterator {
+    class TPoolIterator {
     private:
         const TPool& ParentPool;
 
@@ -39,10 +39,10 @@ struct TPool : public std::vector<TInstance> {
 
         std::mt19937 RandomGenerator;
     public:
-        TCVIterator(const TPool& parentPool,
+        TPoolIterator(const TPool& parentPool,
                     const size_t foldsCount,
                     const EIteratorType iteratorType);
-        TCVIterator(const TCVIterator& source);
+        TPoolIterator(const TPoolIterator& source);
 
         void ResetShuffle();
 
@@ -52,7 +52,7 @@ struct TPool : public std::vector<TInstance> {
 
         const TInstance& operator * () const;
         const TInstance* operator ->() const;
-        TPool::TCVIterator& operator++();
+        TPool::TPoolIterator& operator++();
 
         size_t GetInstanceIdx() const;
     private:
@@ -63,7 +63,7 @@ struct TPool : public std::vector<TInstance> {
     size_t FeaturesCount() const;
 
     void ReadFromFeatures(const std::string& featuresPath);
-    TCVIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
+    TPoolIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
     TPool InjurePool(const double injureFactor, const double injureOffset) const;
 

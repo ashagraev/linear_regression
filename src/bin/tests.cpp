@@ -48,7 +48,7 @@ namespace {
     int DoTestIterators(const TPool& pool) {
         size_t errorsCount = 0;
 
-        TPool::TCVIterator iterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+        TPool::TPoolIterator iterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
         for (size_t i = 0; i < pool.size(); ++i, ++iterator) {
             if (iterator.GetInstanceIdx() != i) {
                 std::cerr << "got error in instance idx for CV iterator on step " << i << std::endl;
@@ -73,8 +73,8 @@ namespace {
 
         const size_t foldsCount = 10;
 
-        TPool::TCVIterator learnIterator = pool.CrossValidationIterator(foldsCount, TPool::LearnIterator);
-        TPool::TCVIterator testIterator = pool.CrossValidationIterator(foldsCount, TPool::TestIterator);
+        TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(foldsCount, TPool::LearnIterator);
+        TPool::TPoolIterator testIterator = pool.CrossValidationIterator(foldsCount, TPool::TestIterator);
 
         std::vector<std::unordered_set<size_t> > learnIndexes(foldsCount);
         std::vector<std::unordered_set<size_t> > testIndexes(foldsCount);
@@ -123,7 +123,7 @@ namespace {
     }
 
     int DoTestLRModels(const TPool& pool) {
-        TPool::TCVIterator learnIterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+        TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
 
         TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(learnIterator);
         TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(learnIterator);

@@ -13,7 +13,7 @@ public:
 };
 
 template <typename TModel>
-double RMSE(TPool::TCVIterator iterator, const TModel& model) {
+double RMSE(TPool::TPoolIterator iterator, const TModel& model) {
     TRegressionMetricsCalculator rmc;
     for (; iterator.IsValid(); ++iterator) {
         rmc.Add(model.Prediction(*iterator), iterator->Goal, iterator->Weight);
