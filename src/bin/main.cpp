@@ -1,3 +1,4 @@
+#include "args.h"
 #include "tests.h"
 
 #include "../lib/linear_regression.h"
@@ -21,6 +22,8 @@ struct TRunData {
     double InjureOffset = 0.;
 
     static TRunData Load(int argc, const char** argv) {
+        TArgsParser argsParser;
+
         TRunData runData;
 
         runData.Mode = argv[1];
