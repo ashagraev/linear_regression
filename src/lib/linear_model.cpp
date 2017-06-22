@@ -6,7 +6,7 @@ TLinearModel::TLinearModel(size_t featuresCount /*= 0*/)
 {
 }
 
-void TLinearModel::SaveToFile(const std::string& modelPath) {
+void TLinearModel::SaveToFile(const std::string& modelPath) const {
     std::ofstream modelOut(modelPath);
     modelOut.precision(20);
 

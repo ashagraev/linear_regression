@@ -14,7 +14,7 @@ struct TLinearModel {
 
     explicit TLinearModel(size_t featuresCount = 0);
 
-    void SaveToFile(const std::string& modelPath);
+    void SaveToFile(const std::string& modelPath) const;
     static TLinearModel LoadFromFile(const std::string& modelPath);
 
     template <typename T>
