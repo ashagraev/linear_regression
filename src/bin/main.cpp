@@ -22,7 +22,10 @@ struct TRunData {
         runData.Mode = argv[1];
 
         runData.FeaturesFilePath = argv[2];
-        if (argc > 3) {
+
+        if (runData.Mode == "cv") {
+            runData.LearningMode = argv[3];
+        } else if (argc > 3) {
             runData.ModelFilePath = argv[3];
         }
 
@@ -50,7 +53,8 @@ struct TRunData {
             return argc == 4;
         }
         if (strcmp(argv[1], "to-vowpal-wabbit") == 0 ||
-            strcmp(argv[1], "to-svm-light") == 0)
+            strcmp(argv[1], "to-svm-light") == 0 ||
+            strcmp(argv[1], "cv") == 0)
         {
             return argc == 3;
         }
@@ -125,6 +129,13 @@ int DoPredict(const TRunData &runData) {
     return 0;
 }
 
+int DoCrossValidation(const TRunData &runData) {
+    (void) runData;
+    //TPool pool;
+    //pool.ReadFromFeatures(runData.FeaturesFilePath);
+    return 0;
+}
+
 int DoInjurePool(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
@@ -160,9 +171,14 @@ int main(int argc, const char** argv) {
     if (runData.Mode == "predict") {
         return DoPredict(runData);
     }
+    if (runData.Mode == "cv") {
+        return DoCrossValidation(runData);
+    }
+
     if (runData.Mode == "injure-pool") {
         return DoInjurePool(runData);
     }
+
     if (runData.Mode == "to-vowpal-wabbit") {
         return ToVowpalWabbit(runData);
     }
