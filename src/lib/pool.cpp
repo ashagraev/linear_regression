@@ -77,8 +77,10 @@ std::string TInstance::ToSVMLightString() const {
 TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)
     : ParentPool(parentPool)
     , FoldsCount(foldsCount)
+    , TestFoldNumber((size_t) -1)
     , IteratorType(iteratorType)
     , InstanceFoldNumbers(ParentPool.size())
+    , Current(InstanceFoldNumbers.begin())
 {
 }
 
