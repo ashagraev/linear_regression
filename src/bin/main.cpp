@@ -289,6 +289,10 @@ int DoTest() {
         std::cerr << "fast & welford lr models are different" << std::endl;
         ++errorsCount;
     }
+    if (!DoublesAreQuiteSimilar(RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), wlrModel), 0.)) {
+        std::cerr << "welford lr model is not enough precise" << std::endl;
+        ++errorsCount;
+    }
 
     for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
         const double present = flrModel.Coefficients[fIdx];
