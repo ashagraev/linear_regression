@@ -1,4 +1,5 @@
 #include "../lib/linear_regression.h"
+#include "../lib/metrics.h"
 #include "../lib/pool.h"
 
 #include <iostream>
@@ -164,6 +165,13 @@ int ToSVMLight(const TRunData &runData) {
     return 0;
 }
 
+bool DoublesAreQuiteSimilar(const double present, const double target, const double possibleError = 0.01) {
+    const double diff = fabs(present - target);
+    const double normalizer = std::max(fabs(target), 1.);
+    const double actualError = diff / normalizer;
+    return actualError < possibleError;
+}
+
 int DoTest() {
     std::mt19937 mersenne;
     std::normal_distribution<double> randGen;
@@ -262,6 +270,25 @@ int DoTest() {
 
     TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
     TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
+
+    if (!DoublesAreQuiteSimilar(RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), fbslrModel),
+                                RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), kbslrModel)))
+    {
+        std::cerr << "fast & kahan bslr models are different" << std::endl;
+        ++errorsCount;
+    }
+    if (!DoublesAreQuiteSimilar(RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), fbslrModel),
+                                RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), wbslrModel)))
+    {
+        std::cerr << "fast & welford bslr models are different" << std::endl;
+        ++errorsCount;
+    }
+    if (!DoublesAreQuiteSimilar(RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), flrModel),
+                                RMSE(pool.CrossValidationIterator(1, TPool::LearnIterator), wlrModel)))
+    {
+        std::cerr << "fast & welford lr models are different" << std::endl;
+        ++errorsCount;
+    }
 
     for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
         const double present = flrModel.Coefficients[fIdx];
