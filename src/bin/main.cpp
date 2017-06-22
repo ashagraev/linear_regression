@@ -95,19 +95,19 @@ int PrintHelp() {
 TLinearModel Solve(TPool::TPoolIterator iterator, const TRunData& runData) {
     TLinearModel linearModel;
     if (runData.LearningMode == "fast_bslr") {
-        linearModel = Solve<TFastBestSLRSolver>(learnIterator);
+        linearModel = Solve<TFastBestSLRSolver>(iterator);
     }
     if (runData.LearningMode == "kahan_bslr") {
-        linearModel = Solve<TKahanBestSLRSolver>(learnIterator);
+        linearModel = Solve<TKahanBestSLRSolver>(iterator);
     }
     if (runData.LearningMode == "welford_bslr") {
-        linearModel = Solve<TWelfordBestSLRSolver>(learnIterator);
+        linearModel = Solve<TWelfordBestSLRSolver>(iterator);
     }
     if (runData.LearningMode == "fast_lr") {
-        linearModel = Solve<TFastLRSolver>(learnIterator);
+        linearModel = Solve<TFastLRSolver>(iterator);
     }
     if (runData.LearningMode == "welford_lr") {
-        linearModel = Solve<TWelfordLRSolver>(learnIterator);
+        linearModel = Solve<TWelfordLRSolver>(iterator);
     }
     return linearModel;
 }
