@@ -206,8 +206,9 @@ int DoTest() {
         std::vector<std::unordered_set<size_t> > testIndexes(foldsCount);
 
         for (size_t fold = 0; fold < foldsCount; ++fold) {
-            learnIterator.SetTestFold(0);
-            testIterator.SetTestFold(0);
+            learnIterator.SetTestFold(fold);
+            testIterator.SetTestFold(fold);
+
             std::unordered_set<size_t>& currentLearnIndexes = learnIndexes[fold];
             std::unordered_set<size_t>& currentTestIndexes = testIndexes[fold];
 
