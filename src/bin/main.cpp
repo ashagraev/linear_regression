@@ -5,13 +5,13 @@
 #include <time.h>
 
 struct TRunData {
-    string Mode;
+    std::string Mode;
 
-    string FeaturesFilePath;
-    string ModelFilePath;
+    std::string FeaturesFilePath;
+    std::string ModelFilePath;
 
-    string LearningMode;
-    string PredictionsPath;
+    std::string LearningMode;
+    std::string PredictionsPath;
 
     double InjureFactor = 1.;
     double InjureOffset = 0.;
@@ -59,21 +59,21 @@ struct TRunData {
 };
 
 int PrintHelp() {
-    cerr << "usage:" << endl;
-    cerr << "    linear_regression learn features_path model_path learning_method" << endl;
-    cerr << "    linear_regression predict features_path model_path" << endl;
-    cerr << "    linear_regression cv features_path learning_method" << endl;
-    cerr << endl;
-    cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << endl;
-    cerr << "    linear_regression to-vowpal-wabbit features_path" << endl;
-    cerr << "    linear_regression to-svm-light features_path" << endl;
-    cerr << endl;
-    cerr << "available learn modes:" << endl;
-    cerr << "    fast_bslr for simple linear regression" << endl;
-    cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << endl;
-    cerr << "    welford_bslr for simple linear regression with Welford's method" << endl;
-    cerr << "    fast_lr for fast linear regression" << endl;
-    cerr << "    welford_lr for linear regression with Welford's method" << endl;
+    std::cerr << "usage:" << std::endl;
+    std::cerr << "    linear_regression learn features_path model_path learning_method" << std::endl;
+    std::cerr << "    linear_regression predict features_path model_path" << std::endl;
+    std::cerr << "    linear_regression cv features_path learning_method" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << std::endl;
+    std::cerr << "    linear_regression to-vowpal-wabbit features_path" << std::endl;
+    std::cerr << "    linear_regression to-svm-light features_path" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "available learn modes:" << std::endl;
+    std::cerr << "    fast_bslr for simple linear regression" << std::endl;
+    std::cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << std::endl;
+    std::cerr << "    welford_bslr for simple linear regression with Welford's method" << std::endl;
+    std::cerr << "    fast_lr for fast linear regression" << std::endl;
+    std::cerr << "    welford_lr for linear regression with Welford's method" << std::endl;
 
     return 1;
 }
@@ -110,12 +110,12 @@ int DoPredict(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
 
-    cout.precision(20);
+    std::cout.precision(20);
 
     const TLinearModel linearModel = TLinearModel::LoadFromFile(runData.ModelFilePath);
 
     for (const TInstance& instance : pool) {
-        cout << instance.QueryId << "\t"
+        std::cout << instance.QueryId << "\t"
              << instance.Goal << "\t"
              << instance.Url << "\t"
              << instance.Weight << "\t"
@@ -129,21 +129,21 @@ int DoInjurePool(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
     pool.InjurePool(runData.InjureFactor, runData.InjureOffset);
-    pool.PrintForFeatures(cout);
+    pool.PrintForFeatures(std::cout);
     return 0;
 }
 
 int ToVowpalWabbit(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
-    pool.PrintForVowpalWabbit(cout);
+    pool.PrintForVowpalWabbit(std::cout);
     return 0;
 }
 
 int ToSVMLight(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
-    pool.PrintForSVMLight(cout);
+    pool.PrintForSVMLight(std::cout);
     return 0;
 }
 

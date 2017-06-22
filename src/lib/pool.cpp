@@ -5,12 +5,12 @@
 #include <string>
 #include <sstream>
 
-TInstance TInstance::FromFeaturesString(const string& featuresString) {
+TInstance TInstance::FromFeaturesString(const std::string& featuresString) {
     TInstance instance;
 
-    stringstream featuresStream(featuresString);
+    std::stringstream featuresStream(featuresString);
 
-    string queryId, url;
+    std::string queryId, url;
     featuresStream >> instance.QueryId;
     featuresStream >> instance.Goal;
     featuresStream >> instance.Url;
@@ -26,7 +26,7 @@ TInstance TInstance::FromFeaturesString(const string& featuresString) {
 }
 
 std::string TInstance::ToFeaturesString() const {
-    stringstream ss;
+    std::stringstream ss;
 
     ss << QueryId << "\t";
     ss << Goal << "\t";
@@ -43,7 +43,7 @@ std::string TInstance::ToFeaturesString() const {
 }
 
 std::string TInstance::ToVowpalWabbitString() const {
-    stringstream ss;
+    std::stringstream ss;
 
     ss << Goal << " ";
     ss << Weight << " ";
@@ -60,7 +60,7 @@ std::string TInstance::ToVowpalWabbitString() const {
 }
 
 std::string TInstance::ToSVMLightString() const {
-    stringstream ss;
+    std::stringstream ss;
 
     ss << Goal;
 
@@ -83,7 +83,7 @@ TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount
 }
 
 void TPool::TCVIterator::ResetShuffle() {
-    vector<size_t> instanceNumbers(ParentPool.size());
+    std::vector<size_t> instanceNumbers(ParentPool.size());
     for (size_t instanceNumber = 0; instanceNumber < ParentPool.size(); ++instanceNumber) {
         instanceNumbers[instanceNumber] = instanceNumber;
     }
@@ -135,10 +135,10 @@ bool TPool::TCVIterator::TakeCurrent() const {
     return false;
 }
 
-void TPool::ReadFromFeatures(const string& featuresPath) {
-    ifstream featuresIn(featuresPath);
+void TPool::ReadFromFeatures(const std::string& featuresPath) {
+    std::ifstream featuresIn(featuresPath);
 
-    string featuresString;
+    std::string featuresString;
     while (getline(featuresIn, featuresString)) {
         if (featuresString.empty()) {
             continue;
@@ -163,19 +163,19 @@ TPool TPool::InjurePool(const double injureFactor, const double injureOffset) co
     return injuredPool;
 }
 
-void TPool::PrintForFeatures(ostream& out) const {
+void TPool::PrintForFeatures(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToFeaturesString() << "\n";
     }
 }
 
-void TPool::PrintForVowpalWabbit(ostream& out) const {
+void TPool::PrintForVowpalWabbit(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToVowpalWabbitString() << "\n";
     }
 }
 
-void TPool::PrintForSVMLight(ostream& out) const {
+void TPool::PrintForSVMLight(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToSVMLightString() << "\n";
     }
