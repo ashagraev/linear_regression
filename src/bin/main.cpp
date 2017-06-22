@@ -2,16 +2,17 @@
 #include "../lib/pool.h"
 
 #include <iostream>
+#include <unordered_set>
 #include <time.h>
 
 struct TRunData {
-    string Mode;
+    std::string Mode;
 
-    string FeaturesFilePath;
-    string ModelFilePath;
+    std::string FeaturesFilePath;
+    std::string ModelFilePath;
 
-    string LearningMode;
-    string PredictionsPath;
+    std::string LearningMode;
+    std::string PredictionsPath;
 
     double InjureFactor = 1.;
     double InjureOffset = 0.;
@@ -23,6 +24,9 @@ struct TRunData {
 
         runData.FeaturesFilePath = argv[2];
 
+        if (argc > 2) {
+            runData.FeaturesFilePath = argv[2];
+        }
         if (runData.Mode == "cv") {
             runData.LearningMode = argv[3];
         } else if (argc > 3) {
@@ -48,7 +52,9 @@ struct TRunData {
         if (argc == 1) {
             return false;
         }
-
+        if (strcmp(argv[1], "test") == 0) {
+            return argc == 2;
+        }
         if (strcmp(argv[1], "predict") == 0) {
             return argc == 4;
         }
@@ -78,6 +84,16 @@ int PrintHelp() {
     cerr << "    welford_bslr for simple linear regression with Welford's method" << endl;
     cerr << "    fast_lr for fast linear regression" << endl;
     cerr << "    welford_lr for linear regression with Welford's method" << endl;
+    std::cerr << "    linear_regression to-svm-light features_path" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "    linear_regression test" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "available learn modes:" << std::endl;
+    std::cerr << "    fast_bslr for simple linear regression" << std::endl;
+    std::cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << std::endl;
+    std::cerr << "    welford_bslr for simple linear regression with Welford's method" << std::endl;
+    std::cerr << "    fast_lr for fast linear regression" << std::endl;
+    std::cerr << "    welford_lr for linear regression with Welford's method" << std::endl;
 
     return 1;
 }
@@ -114,12 +130,12 @@ int DoPredict(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
 
-    cout.precision(20);
+    std::cout.precision(20);
 
     const TLinearModel linearModel = TLinearModel::LoadFromFile(runData.ModelFilePath);
 
     for (const TInstance& instance : pool) {
-        cout << instance.QueryId << "\t"
+        std::cout << instance.QueryId << "\t"
              << instance.Goal << "\t"
              << instance.Url << "\t"
              << instance.Weight << "\t"
@@ -140,22 +156,147 @@ int DoInjurePool(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
     pool.InjurePool(runData.InjureFactor, runData.InjureOffset);
-    pool.PrintForFeatures(cout);
+    pool.PrintForFeatures(std::cout);
     return 0;
 }
 
 int ToVowpalWabbit(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
-    pool.PrintForVowpalWabbit(cout);
+    pool.PrintForVowpalWabbit(std::cout);
     return 0;
 }
 
 int ToSVMLight(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
-    pool.PrintForSVMLight(cout);
+    pool.PrintForSVMLight(std::cout);
     return 0;
+}
+
+int DoTest() {
+    std::mt19937 mersenne;
+
+    const std::vector<double> actualCoefficients = {1., -2., 3., 0., 3., 1., 8., 0.1, -0.1};
+
+    const size_t instancesCount = 1000;
+    const size_t featuresCount = actualCoefficients.size();
+
+    TPool pool;
+    for (size_t instanceIdx = 0; instanceIdx < instancesCount; ++instanceIdx) {
+        TInstance instance;
+
+        for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
+            instance.Features.push_back(randGen(mersenne));
+        }
+        instance.Goal = std::inner_product(instance.Features.begin(), instance.Features.end(), actualCoefficients.begin(), 0.);
+        instance.Weight = 1.;
+        instance.QueryId = 1;
+
+        pool.push_back(instance);
+    }
+
+    size_t errorsCount = 0;
+    {
+        TPool::TCVIterator iterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+        for (size_t i = 0; i < pool.size(); ++i, ++iterator) {
+            if (iterator.GetInstanceIdx() != i) {
+                std::cerr << "got error in instance idx for CV iterator on step " << i << std::endl;
+                ++errorsCount;
+            }
+            if (!iterator.IsValid()) {
+                std::cerr << "got validation error in CV iterator on step " << i << std::endl;
+                ++errorsCount;
+            }
+        }
+        if (iterator.IsValid()) {
+            std::cerr << "got valid CV iterator after pool ends" << std::endl;
+            ++errorsCount;
+        }
+    }
+
+    {
+        const size_t foldsCount = 10;
+
+        TPool::TCVIterator learnIterator = pool.CrossValidationIterator(foldsCount, TPool::LearnIterator);
+        TPool::TCVIterator testIterator = pool.CrossValidationIterator(foldsCount, TPool::TestIterator);
+
+        std::vector<std::unordered_set<size_t> > learnIndexes(foldsCount);
+        std::vector<std::unordered_set<size_t> > testIndexes(foldsCount);
+
+        for (size_t fold = 0; fold < foldsCount; ++fold) {
+            learnIterator.SetTestFold(fold);
+            testIterator.SetTestFold(fold);
+
+            std::unordered_set<size_t>& currentLearnIndexes = learnIndexes[fold];
+            std::unordered_set<size_t>& currentTestIndexes = testIndexes[fold];
+
+            for (; learnIterator.IsValid(); ++learnIterator) {
+                currentLearnIndexes.insert(learnIterator.GetInstanceIdx());
+            }
+            for (; testIterator.IsValid(); ++testIterator) {
+                currentTestIndexes.insert(testIterator.GetInstanceIdx());
+                if (currentLearnIndexes.find(testIterator.GetInstanceIdx()) != currentLearnIndexes.end()) {
+                    std::cerr << "got iterators error: test instance " << testIterator.GetInstanceIdx() << " is in learn set" << std::endl;
+                    ++errorsCount;
+                }
+            }
+
+            if (currentLearnIndexes.size() + currentTestIndexes.size() != pool.size()) {
+                std::cerr << "got iterators error: learn + test size unequal to pool size on fold " << fold
+                          << "; learn: " << currentLearnIndexes.size()
+                          << ", test: " << currentTestIndexes.size()
+                          << ", needed: " << pool.size()
+                          << std::endl;
+                ++errorsCount;
+            }
+        }
+
+        std::unordered_set<size_t> allTestIndexes;
+        for (const std::unordered_set<size_t>& sampleTestIndexes : testIndexes) {
+            allTestIndexes.insert(sampleTestIndexes.begin(), sampleTestIndexes.end());
+        }
+
+        if (allTestIndexes.size() != pool.size()) {
+            std::cerr << "got error: union of all test sets unequal to original pool: got " << allTestIndexes.size() << " while " << pool.size() << " are needed" << std::endl;
+            ++errorsCount;
+        }
+    }
+
+    TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+    TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+    TLinearModel wbslrModel = Solve<TWelfordBestSLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+
+    TLinearModel flrModel = Solve<TFastLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+    TLinearModel wlrModel = Solve<TWelfordLRSolver>(pool.CrossValidationIterator(1, TPool::LearnIterator));
+
+    for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
+        const double present = flrModel.Coefficients[fIdx];
+        const double actual = actualCoefficients[fIdx];
+        const double diff = fabs(present - actual);
+
+        if (diff / std::max(actual, 1.) > 0.05) {
+            std::cerr << "coefficients error for fast lr solver: got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
+            ++errorsCount;
+        }
+    }
+    for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
+        const double present = wlrModel.Coefficients[fIdx];
+        const double actual = actualCoefficients[fIdx];
+        const double diff = fabs(present - actual);
+
+        if (diff / std::max(actual, 1.) > 0.05) {
+            std::cerr << "coefficients error for welford lr solver: got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
+            ++errorsCount;
+        }
+    }
+
+    if (errorsCount) {
+        std::cerr << std::endl;
+    }
+    std::cerr << "total errors count: " << errorsCount << std::endl;
+
+    return errorsCount;
 }
 
 int main(int argc, const char** argv) {
@@ -184,6 +325,9 @@ int main(int argc, const char** argv) {
     }
     if (runData.Mode == "to-svm-light") {
         return ToSVMLight(runData);
+    }
+    if (runData.Mode == "test") {
+        return DoTest();
     }
 
     return PrintHelp();

@@ -6,8 +6,8 @@ TLinearModel::TLinearModel(size_t featuresCount /*= 0*/)
 {
 }
 
-void TLinearModel::SaveToFile(const string& modelPath) {
-    ofstream modelOut(modelPath);
+void TLinearModel::SaveToFile(const std::string& modelPath) {
+    std::ofstream modelOut(modelPath);
     modelOut.precision(20);
 
     modelOut << Coefficients.size() << " ";
@@ -18,8 +18,8 @@ void TLinearModel::SaveToFile(const string& modelPath) {
     }
 }
 
-TLinearModel TLinearModel::LoadFromFile(const string& modelPath) {
-    ifstream modelIn(modelPath);
+TLinearModel TLinearModel::LoadFromFile(const std::string& modelPath) {
+    std::ifstream modelIn(modelPath);
 
     size_t featuresCount;
     modelIn >> featuresCount;

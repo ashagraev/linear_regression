@@ -5,12 +5,12 @@
 #include <string>
 #include <sstream>
 
-TInstance TInstance::FromFeaturesString(const string& featuresString) {
+TInstance TInstance::FromFeaturesString(const std::string& featuresString) {
     TInstance instance;
 
-    stringstream featuresStream(featuresString);
+    std::stringstream featuresStream(featuresString);
 
-    string queryId, url;
+    std::string queryId, url;
     featuresStream >> instance.QueryId;
     featuresStream >> instance.Goal;
     featuresStream >> instance.Url;
@@ -26,7 +26,7 @@ TInstance TInstance::FromFeaturesString(const string& featuresString) {
 }
 
 std::string TInstance::ToFeaturesString() const {
-    stringstream ss;
+    std::stringstream ss;
 
     ss << QueryId << "\t";
     ss << Goal << "\t";
@@ -43,7 +43,7 @@ std::string TInstance::ToFeaturesString() const {
 }
 
 std::string TInstance::ToVowpalWabbitString() const {
-    stringstream ss;
+    std::stringstream ss;
 
     ss << Goal << " ";
     ss << Weight << " ";
@@ -60,7 +60,7 @@ std::string TInstance::ToVowpalWabbitString() const {
 }
 
 std::string TInstance::ToSVMLightString() const {
-    stringstream ss;
+    std::stringstream ss;
 
     ss << Goal;
 
@@ -77,13 +77,15 @@ std::string TInstance::ToSVMLightString() const {
 TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)
     : ParentPool(parentPool)
     , FoldsCount(foldsCount)
+    , TestFoldNumber((size_t) -1)
     , IteratorType(iteratorType)
     , InstanceFoldNumbers(ParentPool.size())
+    , Current(InstanceFoldNumbers.begin())
 {
 }
 
 void TPool::TCVIterator::ResetShuffle() {
-    vector<size_t> instanceNumbers(ParentPool.size());
+    std::vector<size_t> instanceNumbers(ParentPool.size());
     for (size_t instanceNumber = 0; instanceNumber < ParentPool.size(); ++instanceNumber) {
         instanceNumbers[instanceNumber] = instanceNumber;
     }
@@ -98,7 +100,9 @@ void TPool::TCVIterator::ResetShuffle() {
 void TPool::TCVIterator::SetTestFold(const size_t testFoldNumber) {
     TestFoldNumber = testFoldNumber;
     Current = InstanceFoldNumbers.begin();
-    Advance();
+    if (!TakeCurrent()) {
+        Advance();
+    }
 }
 
 bool TPool::TCVIterator::IsValid() const {
@@ -135,10 +139,14 @@ bool TPool::TCVIterator::TakeCurrent() const {
     return false;
 }
 
-void TPool::ReadFromFeatures(const string& featuresPath) {
-    ifstream featuresIn(featuresPath);
+size_t TPool::TCVIterator::GetInstanceIdx() const {
+    return Current - InstanceFoldNumbers.begin();
+}
 
-    string featuresString;
+void TPool::ReadFromFeatures(const std::string& featuresPath) {
+    std::ifstream featuresIn(featuresPath);
+
+    std::string featuresString;
     while (getline(featuresIn, featuresString)) {
         if (featuresString.empty()) {
             continue;
@@ -148,7 +156,9 @@ void TPool::ReadFromFeatures(const string& featuresPath) {
 }
 
 TPool::TCVIterator TPool::CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const {
-    return TPool::TCVIterator(*this, foldsCount, iteratorType);
+    TPool::TCVIterator result(*this, foldsCount, iteratorType);
+    result.ResetShuffle();
+    return result;
 }
 
 TPool TPool::InjurePool(const double injureFactor, const double injureOffset) const {
@@ -163,19 +173,19 @@ TPool TPool::InjurePool(const double injureFactor, const double injureOffset) co
     return injuredPool;
 }
 
-void TPool::PrintForFeatures(ostream& out) const {
+void TPool::PrintForFeatures(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToFeaturesString() << "\n";
     }
 }
 
-void TPool::PrintForVowpalWabbit(ostream& out) const {
+void TPool::PrintForVowpalWabbit(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToVowpalWabbitString() << "\n";
     }
 }
 
-void TPool::PrintForSVMLight(ostream& out) const {
+void TPool::PrintForSVMLight(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToSVMLightString() << "\n";
     }

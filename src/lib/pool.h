@@ -5,23 +5,21 @@
 #include <random>
 #include <string>
 
-using namespace std;
-
 struct TInstance {
-    string QueryId;
-    string Url;
+    std::string QueryId;
+    std::string Url;
 
-    vector<double> Features;
+    std::vector<double> Features;
     double Goal;
     double Weight;
 
-    static TInstance FromFeaturesString(const string& featuresString);
-    string ToFeaturesString() const;
-    string ToVowpalWabbitString() const;
-    string ToSVMLightString() const;
+    static TInstance FromFeaturesString(const std::string& featuresString);
+    std::string ToFeaturesString() const;
+    std::string ToVowpalWabbitString() const;
+    std::string ToSVMLightString() const;
 };
 
-struct TPool : public vector<TInstance> {
+struct TPool : public std::vector<TInstance> {
     enum EIteratorType {
         LearnIterator,
         TestIterator,
@@ -36,10 +34,10 @@ struct TPool : public vector<TInstance> {
         EIteratorType IteratorType;
         size_t TestFoldNumber;
 
-        vector<size_t> InstanceFoldNumbers;
-        vector<size_t>::const_iterator Current;
+        std::vector<size_t> InstanceFoldNumbers;
+        std::vector<size_t>::const_iterator Current;
 
-        mt19937 RandomGenerator;
+        std::mt19937 RandomGenerator;
     public:
         TCVIterator(const TPool& parentPool,
                     const size_t foldsCount,
@@ -54,17 +52,19 @@ struct TPool : public vector<TInstance> {
         const TInstance& operator * () const;
         const TInstance* operator ->() const;
         TPool::TCVIterator& operator++();
+
+        size_t GetInstanceIdx() const;
     private:
         void Advance();
         bool TakeCurrent() const;
     };
 
-    void ReadFromFeatures(const string& featuresPath);
+    void ReadFromFeatures(const std::string& featuresPath);
     TCVIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 
     TPool InjurePool(const double injureFactor, const double injureOffset) const;
 
-    void PrintForFeatures(ostream& out) const;
-    void PrintForVowpalWabbit(ostream& out) const;
-    void PrintForSVMLight(ostream& out) const;
+    void PrintForFeatures(std::ostream& out) const;
+    void PrintForVowpalWabbit(std::ostream& out) const;
+    void PrintForSVMLight(std::ostream& out) const;
 };

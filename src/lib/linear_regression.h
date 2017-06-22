@@ -7,10 +7,10 @@ class TFastLRSolver {
 private:
     TKahanAccumulator SumSquaredGoals;
 
-    vector<double> LinearizedOLSMatrix;
-    vector<double> OLSVector;
+    std::vector<double> LinearizedOLSMatrix;
+    std::vector<double> OLSVector;
 public:
-    void Add(const vector<double>& features, const double goal, const double weight = 1.);
+    void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
     double SumSquaredErrors() const;
 };
@@ -20,16 +20,16 @@ private:
     double GoalsMean = 0.;
     double GoalsDeviation = 0.;
 
-    vector<double> FeatureMeans;
-    vector<double> LastMeans;
-    vector<double> NewMeans;
-    vector<double> LinearizedOLSMatrix;
+    std::vector<double> FeatureMeans;
+    std::vector<double> LastMeans;
+    std::vector<double> NewMeans;
+    std::vector<double> LinearizedOLSMatrix;
 
-    vector<double> OLSVector;
+    std::vector<double> OLSVector;
 
     TKahanAccumulator SumWeights;
 public:
-    void Add(const vector<double>& features, const double goal, const double weight = 1.);
+    void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
     double SumSquaredErrors() const;
 };
@@ -95,7 +95,7 @@ public:
         const double factor = productsDeviation / (featuresDeviation + regularizationParameter);
         const double sumSquaredErrors = factor * factor * featuresDeviation - 2 * factor * productsDeviation + sumGoalSquaredDeviations;
 
-        return max(0., sumSquaredErrors);
+        return std::max(0., sumSquaredErrors);
     }
 private:
     void SetupSolutionFactors(double& productsDeviation, double& featuresDeviation) const {
@@ -147,9 +147,9 @@ public:
 template <typename TSLRSolverType>
 class TTypedBestSLRSolver {
 private:
-    vector<TSLRSolverType> SLRSolvers;
+    std::vector<TSLRSolverType> SLRSolvers;
 public:
-    void Add(const vector<double>& features, const double goal, const double weight = 1.) {
+    void Add(const std::vector<double>& features, const double goal, const double weight = 1.) {
         if (SLRSolvers.empty()) {
             SLRSolvers.resize(features.size());
         }

@@ -8,27 +8,25 @@
 
 #include <fstream>
 
-using namespace std;
-
 struct TLinearModel {
-    vector<double> Coefficients;
+    std::vector<double> Coefficients;
     double Intercept;
 
     explicit TLinearModel(size_t featuresCount = 0);
 
-    void SaveToFile(const string& modelPath);
-    static TLinearModel LoadFromFile(const string& modelPath);
+    void SaveToFile(const std::string& modelPath);
+    static TLinearModel LoadFromFile(const std::string& modelPath);
 
     template <typename T>
-    double Prediction(const vector<T>& features) const {
+    double Prediction(const std::vector<T>& features) const {
         return inner_product(Coefficients.begin(), Coefficients.end(), features.begin(), Intercept);
     }
 };
 
 template <typename TSolver>
-TLinearModel Solve(const TPool::TCVIterator& iterator) {
+TLinearModel Solve(TPool::TCVIterator& iterator) {
     TSolver solver;
-    for (; iterator.IsValid(); iterator.Advance()) {
+    for (; iterator.IsValid(); ++iterator) {
         solver.Add(iterator->Features, iterator->Goal, iterator->Weight);
     }
     return solver.Solve();
