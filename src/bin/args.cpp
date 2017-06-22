@@ -7,9 +7,6 @@
 
 void TArgsParser::DoParse(int argc, const char** argv) const {
     try {
-        argc -= 2;
-        ++argv;
-
         std::unordered_set<std::string> usedKeys;
 
         while (argc) {
