@@ -70,5 +70,9 @@ struct TPool : public std::vector<TInstance> {
     void PrintForVowpalWabbit(std::ostream& out) const;
     void PrintForSVMLight(std::ostream& out) const;
 
+    TPoolIterator LearnIterator() const;
+    TPoolIterator LearnIterator(const size_t foldsCount) const;
+    TPoolIterator TestIterator(const size_t foldsCount) const;
+private:
     TPoolIterator CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const;
 };

@@ -96,7 +96,7 @@ int DoLearn(const TRunData &runData) {
     TPool pool;
     pool.ReadFromFeatures(runData.FeaturesFilePath);
 
-    TPool::TPoolIterator learnIterator = pool.CrossValidationIterator(1, TPool::LearnIterator);
+    TPool::TPoolIterator learnIterator = pool.LearnIterator();
 
     TLinearModel linearModel;
     if (runData.LearningMode == "fast_bslr") {

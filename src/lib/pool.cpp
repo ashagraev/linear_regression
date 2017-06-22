@@ -96,6 +96,13 @@ TPool::TPoolIterator::TPoolIterator(const TPoolIterator& source)
 }
 
 void TPool::TPoolIterator::ResetShuffle() {
+    if (FoldsCount == 0) {
+        for (size_t instanceNumber = 0; instanceNumber < InstanceFoldNumbers.size(); ++instanceNumber) {
+            InstanceFoldNumbers[instanceNumber] = instanceNumber;
+        }
+        return;
+    }
+
     std::vector<size_t> instanceNumbers(ParentPool.size());
     for (size_t instanceNumber = 0; instanceNumber < ParentPool.size(); ++instanceNumber) {
         instanceNumbers[instanceNumber] = instanceNumber;
@@ -208,4 +215,16 @@ void TPool::PrintForSVMLight(std::ostream& out) const {
     for (const TInstance& instance : *this) {
         out << instance.ToSVMLightString() << "\n";
     }
+}
+
+TPool::TPoolIterator TPool::LearnIterator() const {
+    return CrossValidationIterator(0, IT_LEARN);
+}
+
+TPool::TPoolIterator TPool::LearnIterator(const size_t foldsCount) const {
+    return CrossValidationIterator(foldsCount, IT_LEARN);
+}
+
+TPool::TPoolIterator TPool::TestIterator(const size_t foldsCount) const {
+    return CrossValidationIterator(foldsCount, IT_TEST);
 }
