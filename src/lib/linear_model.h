@@ -21,6 +21,10 @@ struct TLinearModel {
     double Prediction(const std::vector<T>& features) const {
         return inner_product(Coefficients.begin(), Coefficients.end(), features.begin(), Intercept);
     }
+
+    double Prediction(const TInstance& instance) const {
+        return Prediction(instance.Features);
+    }
 };
 
 template <typename TSolver>
