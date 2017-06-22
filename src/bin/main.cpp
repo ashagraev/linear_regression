@@ -23,23 +23,17 @@ struct TRunData {
 };
 
 int PrintHelp() {
-    std::cerr << "usage:" << std::endl;
-    std::cerr << "    linear_regression learn features_path model_path learning_method" << std::endl;
-    std::cerr << "    linear_regression predict features_path model_path" << std::endl;
-    std::cerr << "    linear_regression cv features_path learning_method" << std::endl;
+    std::cerr << "modes:" << std::endl;
+    std::cerr << "    linear_regression learn" << std::endl;
+    std::cerr << "    linear_regression predict" << std::endl;
+    std::cerr << "    linear_regression cv" << std::endl;
     std::cerr << std::endl;
-    std::cerr << "    linear_regression injure-pool features_path injure_factor injure_offset" << std::endl;
-    std::cerr << "    linear_regression to-vowpal-wabbit features_path" << std::endl;
-    std::cerr << "    linear_regression to-svm-light features_path" << std::endl;
+    std::cerr << "    linear_regression injure-pool" << std::endl;
+    std::cerr << "    linear_regression to-vowpal-wabbit" << std::endl;
+    std::cerr << "    linear_regression to-svm-light" << std::endl;
     std::cerr << std::endl;
     std::cerr << "    linear_regression test" << std::endl;
     std::cerr << std::endl;
-    std::cerr << "available learn modes:" << std::endl;
-    std::cerr << "    fast_bslr for simple linear regression" << std::endl;
-    std::cerr << "    kahan_bslr for simple linear regression with Kahan's summator" << std::endl;
-    std::cerr << "    welford_bslr for simple linear regression with Welford's method" << std::endl;
-    std::cerr << "    fast_lr for fast linear regression" << std::endl;
-    std::cerr << "    welford_lr for linear regression with Welford's method" << std::endl;
 
     return 1;
 }
@@ -71,9 +65,9 @@ int DoLearn(int argc, const char** argv) {
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath);
-        argsParser.AddHandler("learning-mode", &learningMode);
-        argsParser.AddHandler("model", &modelPath);
+        argsParser.AddHandler("features", &featuresPath, "features file path");
+        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr");
+        argsParser.AddHandler("model", &modelPath, "resulting model path");
         argsParser.DoParse(argc, argv);
     }
 
@@ -94,8 +88,8 @@ int DoPredict(int argc, const char** argv) {
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath);
-        argsParser.AddHandler("model", &modelPath);
+        argsParser.AddHandler("features", &featuresPath, "features file path");
+        argsParser.AddHandler("model", &modelPath, "resulting model path");
         argsParser.DoParse(argc, argv);
     }
 
@@ -124,9 +118,9 @@ int DoCrossValidation(int argc, const char** argv) {
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath);
-        argsParser.AddHandler("learning-mode", &learningMode);
-        argsParser.AddHandler("folds", &foldsCount);
+        argsParser.AddHandler("features", &featuresPath, "features file path");
+        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr");
+        argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count");
         argsParser.DoParse(argc, argv);
     }
 
@@ -161,9 +155,9 @@ int DoInjurePool(int argc, const char** argv) {
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath);
-        argsParser.AddHandler("injure-factor", &injureFactor);
-        argsParser.AddHandler("injure-offset", &injureOffset);
+        argsParser.AddHandler("features", &featuresPath, "features file path");
+        argsParser.AddHandler("injure-factor", &injureFactor, "pool injure factor, feature = feature * factor + offset");
+        argsParser.AddHandler("injure-offset", &injureOffset, "pool injure offset, feature = feature * factor + offset");
         argsParser.DoParse(argc, argv);
     }
 
@@ -178,7 +172,7 @@ int ToVowpalWabbit(int argc, const char** argv) {
     std::string featuresPath;
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath);
+        argsParser.AddHandler("features", &featuresPath, "features file path");
         argsParser.DoParse(argc, argv);
     }
 
@@ -192,7 +186,7 @@ int ToSVMLight(int argc, const char** argv) {
     std::string featuresPath;
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath);
+        argsParser.AddHandler("features", &featuresPath, "features file path");
         argsParser.DoParse(argc, argv);
     }
 
