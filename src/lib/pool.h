@@ -42,6 +42,7 @@ struct TPool : public std::vector<TInstance> {
         TCVIterator(const TPool& parentPool,
                     const size_t foldsCount,
                     const EIteratorType iteratorType);
+        TCVIterator(const TCVIterator& source);
 
         void ResetShuffle();
 

@@ -84,6 +84,17 @@ TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount
 {
 }
 
+TPool::TCVIterator::TCVIterator(const TCVIterator& source)
+    : ParentPool(source.ParentPool)
+    , FoldsCount(source.FoldsCount)
+    , IteratorType(source.IteratorType)
+    , TestFoldNumber(source.TestFoldNumber)
+    , InstanceFoldNumbers(source.InstanceFoldNumbers)
+    , Current(InstanceFoldNumbers.begin() + (source.Current - source.InstanceFoldNumbers.begin()))
+    , RandomGenerator(source.RandomGenerator)
+{
+}
+
 void TPool::TCVIterator::ResetShuffle() {
     std::vector<size_t> instanceNumbers(ParentPool.size());
     for (size_t instanceNumber = 0; instanceNumber < ParentPool.size(); ++instanceNumber) {
