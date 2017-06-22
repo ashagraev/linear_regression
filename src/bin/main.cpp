@@ -153,10 +153,17 @@ int DoCrossValidation(const TRunData &runData) {
     TPool::TPoolIterator learnIterator = pool.LearnIterator(foldsCount);
     TPool::TPoolIterator testIterator = pool.TestIterator(foldsCount);
 
+    TMeanCalculator meanRMSECalculator;
     for (size_t fold = 0; fold < foldsCount; ++fold) {
         learnIterator.SetTestFold(fold);
         testIterator.SetTestFold(fold);
 
+        const TLinearModel linearModel = Solve(learnIterator, runData);
+        const double rmse = RMSE(testIterator, linearModel);
+
+        std::cout << "fold #" << fold << ": RMSE = " << rmse << std::endl;
+
+        meanRMSECalculator.Add(rmse);
     }
 
     return 0;
