@@ -98,7 +98,9 @@ void TPool::TCVIterator::ResetShuffle() {
 void TPool::TCVIterator::SetTestFold(const size_t testFoldNumber) {
     TestFoldNumber = testFoldNumber;
     Current = InstanceFoldNumbers.begin();
-    Advance();
+    if (!TakeCurrent()) {
+        Advance();
+    }
 }
 
 bool TPool::TCVIterator::IsValid() const {
