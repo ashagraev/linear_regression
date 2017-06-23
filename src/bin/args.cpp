@@ -11,14 +11,15 @@ void TArgsParser::DoParse(int argc, const char** argv) const {
 
         while (argc) {
             std::string argument = argv[0];
-            if (argc < 2) {
-                std::string message = "missing parameter for --" + argument;
-                throw std::exception(message.c_str());
-            }
 
             auto parser = Parsers.find(argument);
             if (parser == Parsers.end()) {
-                std::string message = "unknown argument: --" + argument;
+                std::string message = "unknown argument: " + argument;
+                throw std::exception(message.c_str());
+            }
+
+            if (argc < 2) {
+                std::string message = "missing parameter for " + argument;
                 throw std::exception(message.c_str());
             }
 
@@ -73,12 +74,14 @@ void TArgsParser::PrintHelp() const {
     }
 
     const std::string tab = "    ";
+    const std::string halfTab = "  ";
     const std::string required = "REQUIRED";
     const std::string optional = "OPTIONAL";
     const std::string default = "DEFAULT: ";
 
     const size_t commonPrefixLength =
-        tab.length() * 4 +
+        tab.length() * 3 +
+        halfTab.length() +
         std::max(required.length(), optional.length()) +
         default.length() +
         maxKeyLength +
@@ -93,9 +96,9 @@ void TArgsParser::PrintHelp() const {
 
         auto&& parser = Parsers.find(key);
         if (parser->second->IsRequired()) {
-            line << required << tab;
+            line << required << halfTab;
         } else {
-            line << optional << tab;
+            line << optional << halfTab;
             line << default << parser->second->GetValue();
         }
 
