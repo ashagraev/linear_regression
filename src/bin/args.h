@@ -8,11 +8,14 @@
 #include <vector>
 
 class TArgParser {
-public:
+protected:
+    virtual const std::string GetValue() const = 0;
     virtual void SetValue(const std::string& arg) = 0;
 
-    virtual std::string GetDescription() const = 0;
+    virtual const std::string GetDescription() const = 0;
     virtual bool IsRequired() const = 0;
+
+    friend class TArgsParser;
 };
 
 template <typename TValue>
@@ -21,11 +24,17 @@ private:
     TValue* Target = nullptr;
     std::string Description;
     bool IsOptional = false;
-
+private:
     TSomeArgParser(TValue* target, const std::string& description)
         : Target(target)
         , Description(description)
     {
+    }
+
+    const std::string GetValue() const override {
+        std::stringstream ss;
+        ss << *Target;
+        return ss.str();
     }
 
     void SetValue(const std::string& arg) override {
@@ -33,7 +42,7 @@ private:
         ss >> *Target;
     }
 
-    std::string GetDescription() const override {
+    const std::string GetDescription() const override {
         return Description;
     }
 
@@ -62,7 +71,10 @@ public:
     TSomeArgParser<TValue>& AddHandler(std::string key, TValue* target, const std::string& description) {
         key = "--" + key;
         ArgumentNames.push_back(key);
-        Parsers[key] = std::shared_ptr<TArgParser>(new TSomeArgParser<TValue>(target, description));
+
+        TSomeArgParser<TValue>* parser = new TSomeArgParser<TValue>(target, description);
+        Parsers[key] = std::shared_ptr<TArgParser>(parser);
+        return *parser;
     }
 
     void DoParse(int argc, const char** argv) const;

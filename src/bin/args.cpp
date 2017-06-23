@@ -12,13 +12,13 @@ void TArgsParser::DoParse(int argc, const char** argv) const {
         while (argc) {
             std::string argument = argv[0];
             if (argc < 2) {
-                std::string message = "missing parameter for " + argument;
+                std::string message = "missing parameter for --" + argument;
                 throw std::exception(message.c_str());
             }
 
             auto parser = Parsers.find(argument);
             if (parser == Parsers.end()) {
-                std::string message = "unknown argument: " + argument;
+                std::string message = "unknown argument: --" + argument;
                 throw std::exception(message.c_str());
             }
 
@@ -64,15 +64,44 @@ void TArgsParser::PrintHelp() const {
         maxKeyLength = std::max(maxKeyLength, key.length());
     }
 
-    std::cerr << "arguments:" << std::endl;
+    size_t maxDefaultLength = 0;
+    for (auto&& parser : Parsers) {
+        if (parser.second->IsRequired()) {
+            continue;
+        }
+        maxDefaultLength = std::max(maxDefaultLength, parser.second->GetValue().size());
+    }
+
+    const std::string tab = "    ";
+    const std::string required = "REQUIRED";
+    const std::string optional = "OPTIONAL";
+    const std::string default = "DEFAULT: ";
+
+    const size_t commonPrefixLength =
+        tab.length() * 4 +
+        std::max(required.length(), optional.length()) +
+        default.length() +
+        maxKeyLength +
+        maxDefaultLength;
+
     for (const std::string& key : ArgumentNames) {
         std::stringstream line;
-        line << "    " << key;
-        for (size_t i = key.length(); i < maxKeyLength + 8; ++i) {
+        line << tab << key;
+        for (size_t i = key.length(); i < maxKeyLength + tab.length(); ++i) {
             line << " ";
         }
 
         auto&& parser = Parsers.find(key);
+        if (parser->second->IsRequired()) {
+            line << required << tab;
+        } else {
+            line << optional << tab;
+            line << default << parser->second->GetValue();
+        }
+
+        for (size_t i = line.str().length(); i < commonPrefixLength; ++i) {
+            line << " ";
+        }
         line << parser->second->GetDescription();
 
         std::cerr << line.str() << std::endl;
