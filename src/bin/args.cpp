@@ -31,6 +31,10 @@ void TArgsParser::DoParse(int argc, const char** argv) const {
 
         std::vector<std::string> lostArguments;
         for (auto&& keyWithParser : Parsers) {
+            if (!keyWithParser.second->IsRequired()) {
+                continue;
+            }
+
             const std::string& key = keyWithParser.first;
             if (usedKeys.find(key) == usedKeys.end()) {
                 lostArguments.push_back(key);
@@ -38,7 +42,7 @@ void TArgsParser::DoParse(int argc, const char** argv) const {
         }
 
         if (!lostArguments.empty()) {
-            std::string message = "those arguments are needed: ";
+            std::string message = "those arguments are required: ";
             message += lostArguments.front();
             for (size_t i = 1; i < lostArguments.size(); ++i) {
                 message += ", " + lostArguments[i];
@@ -111,5 +115,4 @@ void TModeChooser::PrintHelp() const {
 
         std::cerr << line.str() << std::endl;
     }
-
 }
