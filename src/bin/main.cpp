@@ -252,7 +252,7 @@ int DoResearchMethods(int argc, const char** argv) {
         std::cerr << "injure offset: " << injureOffset << std::endl;
 
         for (size_t methodIdx = 0; methodIdx < learningModes.size(); ++methodIdx) {
-            const double cvScore = CrossValidation(injuredPool, foldsCount, runsCount, learningModes[methodIdx], "", false) / injureFactor;
+            const double cvScore = CrossValidation(injuredPool, foldsCount, runsCount, learningModes[methodIdx], "", false);
 
             std::stringstream ss;
             ss << "   ";
