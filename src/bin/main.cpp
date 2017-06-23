@@ -226,7 +226,7 @@ int DoResearchMethods(int argc, const char** argv) {
     TPool pool;
     pool.ReadFromFeatures(featuresPath);
 
-    std::vector<std::pair<double, double> > injureFactorsAndOffsets;
+    std::vector<std::pair<double, double>> injureFactorsAndOffsets;
     {
         double injureFactor = 1.;
         double injureOffset = 1.;
@@ -238,7 +238,6 @@ int DoResearchMethods(int argc, const char** argv) {
             injureOffset /= degradeFactor;
         }
     }
-
 
     const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr" };
     std::vector<std::vector<double>> scores(learningModes.size());

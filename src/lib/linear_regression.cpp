@@ -148,7 +148,7 @@ namespace NLinearRegressionInner {
                           const double regularizationThreshold,
                           const double regularizationParameter,
                           std::vector<double>& decompositionTrace,
-                          std::vector<std::vector<double> >& decompositionMatrix)
+                          std::vector<std::vector<double>>& decompositionMatrix)
     {
         const size_t featuresCount = decompositionTrace.size();
 
@@ -190,7 +190,7 @@ namespace NLinearRegressionInner {
 
     void LDLDecomposition(const std::vector<double>& linearizedOLSMatrix,
                           std::vector<double>& decompositionTrace,
-                          std::vector<std::vector<double> >& decompositionMatrix)
+                          std::vector<std::vector<double>>& decompositionMatrix)
     {
         const double regularizationThreshold = 1e-5;
         double regularizationParameter = 0.;
@@ -205,7 +205,7 @@ namespace NLinearRegressionInner {
         }
     }
 
-    std::vector<double> SolveLower(const std::vector<std::vector<double> >& decompositionMatrix,
+    std::vector<double> SolveLower(const std::vector<std::vector<double>>& decompositionMatrix,
                               const std::vector<double>& decompositionTrace,
                               const std::vector<double>& olsVector)
     {
@@ -229,7 +229,7 @@ namespace NLinearRegressionInner {
         return solution;
     }
 
-    std::vector<double> SolveUpper(const std::vector<std::vector<double> >& decompositionMatrix,
+    std::vector<double> SolveUpper(const std::vector<std::vector<double>>& decompositionMatrix,
                               const std::vector<double>& lowerSolution)
     {
         const size_t featuresCount = lowerSolution.size();
@@ -252,7 +252,7 @@ namespace NLinearRegressionInner {
         const size_t featuresCount = olsVector.size();
 
         std::vector<double> decompositionTrace(featuresCount);
-        std::vector<std::vector<double> > decompositionMatrix(featuresCount, std::vector<double>(featuresCount));
+        std::vector<std::vector<double>> decompositionMatrix(featuresCount, std::vector<double>(featuresCount));
 
         LDLDecomposition(olsMatrix, decompositionTrace, decompositionMatrix);
 

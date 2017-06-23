@@ -76,8 +76,8 @@ namespace {
         TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
         TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
-        std::vector<std::unordered_set<size_t> > learnIndexes(foldsCount);
-        std::vector<std::unordered_set<size_t> > testIndexes(foldsCount);
+        std::vector<std::unordered_set<size_t>> learnIndexes(foldsCount);
+        std::vector<std::unordered_set<size_t>> testIndexes(foldsCount);
 
         for (size_t fold = 0; fold < foldsCount; ++fold) {
             learnIterator.SetTestFold(fold);
