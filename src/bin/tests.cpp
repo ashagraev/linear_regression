@@ -185,7 +185,7 @@ namespace {
         }
 
         std::cout << "lr model errors: " << errorsCount << std::endl;
-        std::cout << "    wblr RMSE: " << wbslrRMSE << std::endl;
+        std::cout << "    wbslr RMSE: " << wbslrRMSE << std::endl;
         std::cout << "    wlr RMSE: " << wlrRMSE << std::endl;
 
         return errorsCount;
