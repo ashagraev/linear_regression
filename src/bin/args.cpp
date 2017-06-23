@@ -10,38 +10,38 @@ void TArgsParser::DoParse(int argc, const char** argv) const {
         std::unordered_set<std::string> usedKeys;
 
         while (argc) {
-            std::string parameter = argv[0];
+            std::string argument = argv[0];
             if (argc < 2) {
-                std::string message = "missing parameter for " + parameter + " argument";
+                std::string message = "missing parameter for " + argument;
                 throw std::exception(message.c_str());
             }
 
-            auto parser = Parsers.find(parameter);
+            auto parser = Parsers.find(argument);
             if (parser == Parsers.end()) {
-                std::string message = "unknown parameter: " + parameter;
+                std::string message = "unknown argument: " + argument;
                 throw std::exception(message.c_str());
             }
 
-            usedKeys.insert(parameter);
+            usedKeys.insert(argument);
             parser->second->SetValue(argv[1]);
 
             argc -= 2;
             argv += 2;
         }
 
-        std::vector<std::string> lostParameters;
+        std::vector<std::string> lostArguments;
         for (auto&& keyWithParser : Parsers) {
             const std::string& key = keyWithParser.first;
             if (usedKeys.find(key) == usedKeys.end()) {
-                lostParameters.push_back(key);
+                lostArguments.push_back(key);
             }
         }
 
-        if (!lostParameters.empty()) {
-            std::string message = "those parameters are needed: ";
-            message += lostParameters.front();
-            for (size_t i = 1; i < lostParameters.size(); ++i) {
-                message += ", " + lostParameters[i];
+        if (!lostArguments.empty()) {
+            std::string message = "those arguments are needed: ";
+            message += lostArguments.front();
+            for (size_t i = 1; i < lostArguments.size(); ++i) {
+                message += ", " + lostArguments[i];
             }
             throw std::exception(message.c_str());
         }
@@ -60,7 +60,7 @@ void TArgsParser::PrintHelp() const {
         maxKeyLength = std::max(maxKeyLength, key.length());
     }
 
-    std::cerr << "parameters:" << std::endl;
+    std::cerr << "arguments:" << std::endl;
     for (const std::string& key : ArgumentNames) {
         std::stringstream line;
         line << "    " << key;
