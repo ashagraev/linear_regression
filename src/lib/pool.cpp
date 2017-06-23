@@ -128,7 +128,7 @@ void TPool::ReadFromFeatures(const std::string& featuresPath) {
     }
 }
 
-TPool TPool::InjurePool(const double injureFactor, const double injureOffset) const {
+TPool TPool::InjuredPool(const double injureFactor, const double injureOffset) const {
     TPool injuredPool(*this);
 
     for (TInstance& instance : injuredPool) {

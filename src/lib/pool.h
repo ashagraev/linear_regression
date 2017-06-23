@@ -33,7 +33,7 @@ public:
 
     void ReadFromFeatures(const std::string& featuresPath);
 
-    TPool InjurePool(const double injureFactor, const double injureOffset) const;
+    TPool InjuredPool(const double injureFactor, const double injureOffset) const;
 
     void PrintForFeatures(std::ostream& out) const;
     void PrintForVowpalWabbit(std::ostream& out) const;
