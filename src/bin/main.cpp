@@ -61,14 +61,18 @@ TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
 
 int DoLearn(int argc, const char** argv) {
     std::string featuresPath;
-    std::string learningMode;
     std::string modelPath;
+
+    std::string learningMode = "welford_lr";
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path");
-        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr");
-        argsParser.AddHandler("model", &modelPath, "resulting model path");
+
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+
+        argsParser.AddHandler("model", &modelPath, "resulting model path").Optional();
+        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr").Optional();
+
         argsParser.DoParse(argc, argv);
     }
 
@@ -77,7 +81,10 @@ int DoLearn(int argc, const char** argv) {
 
     TPool::TSimpleIterator learnIterator(pool);
     const TLinearModel linearModel = Solve(learnIterator, learningMode);
-    linearModel.SaveToFile(modelPath);
+
+    if (!modelPath.empty()) {
+        linearModel.SaveToFile(modelPath);
+    }
 
     return 0;
 }
@@ -88,8 +95,8 @@ int DoPredict(int argc, const char** argv) {
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path");
-        argsParser.AddHandler("model", &modelPath, "resulting model path");
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+        argsParser.AddHandler("model", &modelPath, "resulting model path").Required();
         argsParser.DoParse(argc, argv);
     }
 
@@ -113,14 +120,17 @@ int DoPredict(int argc, const char** argv) {
 
 int DoCrossValidation(int argc, const char** argv) {
     std::string featuresPath;
-    std::string learningMode;
-    size_t foldsCount;
+
+    std::string learningMode = "welford_lr";
+    size_t foldsCount = 5;
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path");
-        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr");
-        argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count");
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr").Optional();
+
+        argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
+
         argsParser.DoParse(argc, argv);
     }
 
@@ -150,14 +160,14 @@ int DoCrossValidation(int argc, const char** argv) {
 
 int DoInjurePool(int argc, const char** argv) {
     std::string featuresPath;
-    double injureFactor;
-    double injureOffset;
+    double injureFactor = 1000;
+    double injureOffset = 1000;
 
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path");
-        argsParser.AddHandler("injure-factor", &injureFactor, "pool injure factor, feature = feature * factor + offset");
-        argsParser.AddHandler("injure-offset", &injureOffset, "pool injure offset, feature = feature * factor + offset");
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+        argsParser.AddHandler("injure-factor", &injureFactor, "pool injure factor, feature = feature * factor + offset").Optional();
+        argsParser.AddHandler("injure-offset", &injureOffset, "pool injure offset, feature = feature * factor + offset").Optional();
         argsParser.DoParse(argc, argv);
     }
 
@@ -172,7 +182,7 @@ int ToVowpalWabbit(int argc, const char** argv) {
     std::string featuresPath;
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path");
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
         argsParser.DoParse(argc, argv);
     }
 
@@ -186,7 +196,7 @@ int ToSVMLight(int argc, const char** argv) {
     std::string featuresPath;
     {
         TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path");
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
         argsParser.DoParse(argc, argv);
     }
 
