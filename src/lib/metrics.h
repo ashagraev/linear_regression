@@ -1,7 +1,6 @@
 #pragma once
 
 #include "welford.h"
-#include "pool.h"
 
 class TRegressionMetricsCalculator {
 private:
@@ -12,8 +11,8 @@ public:
     double RMSE() const;
 };
 
-template <typename TModel>
-double RMSE(TPool::TPoolIterator iterator, const TModel& model) {
+template <typename TModel, typename TIterator>
+double RMSE(TIterator iterator, const TModel& model) {
     TRegressionMetricsCalculator rmc;
     for (; iterator.IsValid(); ++iterator) {
         rmc.Add(model.Prediction(*iterator), iterator->Goal, iterator->Weight);

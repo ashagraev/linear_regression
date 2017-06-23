@@ -74,73 +74,20 @@ std::string TInstance::ToSVMLightString() const {
     return ss.str();
 }
 
-TPool::TPoolIterator::TPoolIterator(const TPool& parentPool, const size_t foldsCount, const EIteratorType iteratorType)
-    : ParentPool(parentPool)
-    , FoldsCount(foldsCount)
-    , TestFoldNumber((size_t) -1)
-    , IteratorType(iteratorType)
-    , InstanceFoldNumbers(ParentPool.size())
-    , Current(InstanceFoldNumbers.begin())
-{
-}
-
-TPool::TPoolIterator::TPoolIterator(const TPoolIterator& source)
-    : ParentPool(source.ParentPool)
-    , FoldsCount(source.FoldsCount)
-    , IteratorType(source.IteratorType)
-    , TestFoldNumber(source.TestFoldNumber)
-    , InstanceFoldNumbers(source.InstanceFoldNumbers)
-    , Current(InstanceFoldNumbers.begin() + (source.Current - source.InstanceFoldNumbers.begin()))
-    , RandomGenerator(source.RandomGenerator)
-{
-}
-
-void TPool::TPoolIterator::ResetShuffle() {
-    if (FoldsCount == 0) {
-        for (size_t instanceNumber = 0; instanceNumber < InstanceFoldNumbers.size(); ++instanceNumber) {
-            InstanceFoldNumbers[instanceNumber] = instanceNumber;
-        }
-        return;
-    }
-
-    std::vector<size_t> instanceNumbers(ParentPool.size());
-    for (size_t instanceNumber = 0; instanceNumber < ParentPool.size(); ++instanceNumber) {
-        instanceNumbers[instanceNumber] = instanceNumber;
-    }
-    shuffle(instanceNumbers.begin(), instanceNumbers.end(), RandomGenerator);
-
-    for (size_t instancePosition = 0; instancePosition < ParentPool.size(); ++instancePosition) {
-        InstanceFoldNumbers[instanceNumbers[instancePosition]] = instancePosition % FoldsCount;
-    }
-    Current = InstanceFoldNumbers.begin();
-}
-
-void TPool::TPoolIterator::SetTestFold(const size_t testFoldNumber) {
-    TestFoldNumber = testFoldNumber;
-    Current = InstanceFoldNumbers.begin();
-    if (!TakeCurrent()) {
-        Advance();
-    }
-}
-
-bool TPool::TPoolIterator::IsValid() const {
-    return Current != InstanceFoldNumbers.end();
-}
-
-const TInstance& TPool::TPoolIterator::operator* () const {
+const TInstance& TPool::TCVIterator::operator* () const {
     return ParentPool[Current - InstanceFoldNumbers.begin()];
 }
 
-const TInstance* TPool::TPoolIterator::operator->() const {
+const TInstance* TPool::TCVIterator::operator->() const {
     return &ParentPool[Current - InstanceFoldNumbers.begin()];
 }
 
-TPool::TPoolIterator& TPool::TPoolIterator::operator++() {
+TPool::TCVIterator& TPool::TCVIterator::operator++() {
     Advance();
     return *this;
 }
 
-void TPool::TPoolIterator::Advance() {
+void TPool::TCVIterator::Advance() {
     while (IsValid()) {
         ++Current;
         if (IsValid() && TakeCurrent()) {
@@ -149,7 +96,7 @@ void TPool::TPoolIterator::Advance() {
     }
 }
 
-bool TPool::TPoolIterator::TakeCurrent() const {
+bool TPool::TCVIterator::TakeCurrent() const {
     switch (IteratorType) {
     case IT_LEARN: return *Current != TestFoldNumber;
     case IT_TEST: return *Current == TestFoldNumber;
@@ -157,7 +104,7 @@ bool TPool::TPoolIterator::TakeCurrent() const {
     return false;
 }
 
-size_t TPool::TPoolIterator::GetInstanceIdx() const {
+size_t TPool::TCVIterator::GetInstanceIdx() const {
     return Current - InstanceFoldNumbers.begin();
 }
 
@@ -179,12 +126,6 @@ void TPool::ReadFromFeatures(const std::string& featuresPath) {
         }
         this->push_back(TInstance::FromFeaturesString(featuresString));
     }
-}
-
-TPool::TPoolIterator TPool::CrossValidationIterator(const size_t foldsCount, const EIteratorType iteratorType) const {
-    TPool::TPoolIterator result(*this, foldsCount, iteratorType);
-    result.ResetShuffle();
-    return result;
 }
 
 TPool TPool::InjurePool(const double injureFactor, const double injureOffset) const {
@@ -217,14 +158,89 @@ void TPool::PrintForSVMLight(std::ostream& out) const {
     }
 }
 
-TPool::TPoolIterator TPool::LearnIterator() const {
-    return CrossValidationIterator(0, IT_LEARN);
+TPool::TSimpleIterator TPool::Iterator() const {
+    return TSimpleIterator(*this);
 }
 
-TPool::TPoolIterator TPool::LearnIterator(const size_t foldsCount) const {
-    return CrossValidationIterator(foldsCount, IT_LEARN);
+TPool::TCVIterator TPool::LearnIterator(const size_t foldsCount) const {
+    return TPool::TCVIterator(*this, foldsCount, TPool::IT_LEARN);
 }
 
-TPool::TPoolIterator TPool::TestIterator(const size_t foldsCount) const {
-    return CrossValidationIterator(foldsCount, IT_TEST);
+TPool::TCVIterator TPool::TestIterator(const size_t foldsCount) const {
+    return TPool::TCVIterator(*this, foldsCount, TPool::IT_TEST);
+}
+
+TPool::TSimpleIterator::TSimpleIterator(const TPool& parentPool)
+    : ParentPool(parentPool)
+    , Current(ParentPool.begin())
+{
+}
+
+bool TPool::TSimpleIterator::IsValid() const {
+    return Current != ParentPool.end();
+}
+
+const TInstance& TPool::TSimpleIterator::operator*() const {
+    return *Current;
+}
+
+const TInstance* TPool::TSimpleIterator::operator->() const {
+    return &*Current;
+
+}
+
+TPool::TSimpleIterator& TPool::TSimpleIterator::operator++() {
+    ++Current;
+    return *this;
+}
+
+size_t TPool::TSimpleIterator::GetInstanceIdx() const {
+    return Current - ParentPool.begin();
+}
+
+TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const TPool::ECVIteratorType iteratorType)
+    : ParentPool(parentPool)
+    , FoldsCount(foldsCount)
+    , TestFoldNumber((size_t)-1)
+    , IteratorType(iteratorType)
+    , InstanceFoldNumbers(ParentPool.size())
+    , Current(InstanceFoldNumbers.begin())
+{
+    ResetShuffle();
+}
+
+TPool::TCVIterator::TCVIterator(const TCVIterator& source)
+    : ParentPool(source.ParentPool)
+    , FoldsCount(source.FoldsCount)
+    , IteratorType(source.IteratorType)
+    , TestFoldNumber(source.TestFoldNumber)
+    , InstanceFoldNumbers(source.InstanceFoldNumbers)
+    , Current(InstanceFoldNumbers.begin() + (source.Current - source.InstanceFoldNumbers.begin()))
+    , RandomGenerator(source.RandomGenerator)
+{
+}
+
+void TPool::TCVIterator::ResetShuffle() {
+    std::vector<size_t> instanceNumbers(ParentPool.size());
+    for (size_t instanceNumber = 0; instanceNumber < ParentPool.size(); ++instanceNumber) {
+        instanceNumbers[instanceNumber] = instanceNumber;
+    }
+    shuffle(instanceNumbers.begin(), instanceNumbers.end(), RandomGenerator);
+
+    for (size_t instancePosition = 0; instancePosition < ParentPool.size(); ++instancePosition) {
+        InstanceFoldNumbers[instanceNumbers[instancePosition]] = instancePosition % FoldsCount;
+    }
+    Current = InstanceFoldNumbers.begin();
+}
+
+void TPool::TCVIterator::SetTestFold(const size_t testFoldNumber) {
+    TestFoldNumber = testFoldNumber;
+    Current = InstanceFoldNumbers.begin();
+    if (!TakeCurrent()) {
+        Advance();
+    }
+}
+
+bool TPool::TCVIterator::IsValid() const {
+    return Current != InstanceFoldNumbers.end();
 }

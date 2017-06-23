@@ -27,8 +27,8 @@ struct TLinearModel {
     }
 };
 
-template <typename TSolver>
-TLinearModel Solve(TPool::TPoolIterator iterator) {
+template <typename TSolver, typename TIterator>
+TLinearModel Solve(TIterator iterator) {
     TSolver solver;
     for (; iterator.IsValid(); ++iterator) {
         solver.Add(iterator->Features, iterator->Goal, iterator->Weight);

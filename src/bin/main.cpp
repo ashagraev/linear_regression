@@ -38,7 +38,8 @@ int PrintHelp() {
     return 1;
 }
 
-TLinearModel Solve(TPool::TPoolIterator iterator, const std::string& learningMode) {
+template <typename TIteratorType>
+TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
     TLinearModel linearModel;
     if (learningMode == "fast_bslr") {
         linearModel = Solve<TFastBestSLRSolver>(iterator);
@@ -74,8 +75,7 @@ int DoLearn(int argc, const char** argv) {
     TPool pool;
     pool.ReadFromFeatures(featuresPath);
 
-    TPool::TPoolIterator learnIterator = pool.LearnIterator();
-
+    TPool::TSimpleIterator learnIterator(pool);
     const TLinearModel linearModel = Solve(learnIterator, learningMode);
     linearModel.SaveToFile(modelPath);
 
@@ -127,8 +127,8 @@ int DoCrossValidation(int argc, const char** argv) {
     TPool pool;
     pool.ReadFromFeatures(featuresPath);
 
-    TPool::TPoolIterator learnIterator = pool.LearnIterator(foldsCount);
-    TPool::TPoolIterator testIterator = pool.TestIterator(foldsCount);
+    TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
+    TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
     TMeanCalculator meanRMSECalculator;
     for (size_t fold = 0; fold < foldsCount; ++fold) {

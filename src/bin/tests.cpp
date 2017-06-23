@@ -48,7 +48,7 @@ namespace {
     int DoTestIterators(const TPool& pool) {
         size_t errorsCount = 0;
 
-        TPool::TPoolIterator iterator = pool.LearnIterator();
+        TPool::TSimpleIterator iterator = pool.Iterator();
         for (size_t i = 0; i < pool.size(); ++i, ++iterator) {
             if (iterator.GetInstanceIdx() != i) {
                 std::cerr << "got error in instance idx for CV iterator on step " << i << std::endl;
@@ -73,8 +73,8 @@ namespace {
 
         const size_t foldsCount = 10;
 
-        TPool::TPoolIterator learnIterator = pool.LearnIterator(foldsCount);
-        TPool::TPoolIterator testIterator = pool.TestIterator(foldsCount);
+        TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
+        TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
         std::vector<std::unordered_set<size_t> > learnIndexes(foldsCount);
         std::vector<std::unordered_set<size_t> > testIndexes(foldsCount);
@@ -123,7 +123,7 @@ namespace {
     }
 
     int DoTestLRModels(const TPool& pool) {
-        TPool::TPoolIterator learnIterator = pool.LearnIterator();
+        TPool::TSimpleIterator learnIterator = pool.Iterator();
 
         TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(learnIterator);
         TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(learnIterator);
@@ -132,12 +132,12 @@ namespace {
         TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
         TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
 
-        const double fbslrRMSE = RMSE(pool.LearnIterator(), fbslrModel);
-        const double kbslrRMSE = RMSE(pool.LearnIterator(), kbslrModel);
-        const double wbslrRMSE = RMSE(pool.LearnIterator(), wbslrModel);
+        const double fbslrRMSE = RMSE(learnIterator, fbslrModel);
+        const double kbslrRMSE = RMSE(learnIterator, kbslrModel);
+        const double wbslrRMSE = RMSE(learnIterator, wbslrModel);
 
-        const double flrRMSE = RMSE(pool.LearnIterator(), flrModel);
-        const double wlrRMSE = RMSE(pool.LearnIterator(), wlrModel);
+        const double flrRMSE = RMSE(learnIterator, flrModel);
+        const double wlrRMSE = RMSE(learnIterator, wlrModel);
 
         size_t errorsCount = 0;
 
