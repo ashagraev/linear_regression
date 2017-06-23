@@ -201,6 +201,68 @@ int DoCrossValidation(int argc, const char** argv) {
     return 0;
 }
 
+int DoResearchMethods(int argc, const char** argv) {
+    std::string featuresPath;
+
+    size_t foldsCount = 5;
+    size_t runsCount = 1;
+
+    {
+        TArgsParser argsParser;
+        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+
+        argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
+        argsParser.AddHandler("runs", &runsCount, "cross-validation runs count").Optional();
+
+        argsParser.DoParse(argc, argv);
+    }
+
+    TPool pool;
+    pool.ReadFromFeatures(featuresPath);
+
+    const size_t injureTasksCount = 5;
+    double injureFactors[] = { 1., 1e-1, 1e-2, 1e-3, 1e-4 };
+    double injureOffsets[] = { 1., 1e+1, 1e+2, 1e+2, 1e+2 };
+
+    static_assert(sizeof(injureFactors) == sizeof(injureOffsets), "number of injure tasks should be equal");
+    static_assert(injureTasksCount == sizeof(injureOffsets) / sizeof(double), "number of injure tasks should be equal");
+
+    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr" };
+    std::vector<std::vector<double>> scores(learningModes.size());
+
+    for (size_t injureTaskIdx = 0; injureTaskIdx < injureTasksCount; ++injureTaskIdx) {
+        const double injureFactor = injureFactors[injureTaskIdx];
+        const double injureOffset = injureOffsets[injureTaskIdx];
+
+        const TPool injuredPool = pool.InjuredPool(injureFactor, injureOffset);
+
+        std::cerr << "injure factor: " << injureFactor << std::endl;
+        std::cerr << "injure offset: " << injureOffset << std::endl;
+
+        for (size_t methodIdx = 0; methodIdx < learningModes.size(); ++methodIdx) {
+            const double cvScore = CrossValidation(injuredPool, foldsCount, runsCount, learningModes[methodIdx], "", false);
+
+            std::stringstream ss;
+            ss << "   ";
+            ss << learningModes[methodIdx];
+            while (ss.str().size() < 15) {
+                ss << " ";
+            }
+
+            ss.precision(5);
+
+            ss << cvScore;
+
+            std::cerr << ss.str() << std::endl;
+
+            scores[methodIdx].push_back(cvScore);
+        }
+        std::cerr << std::endl;
+    }
+
+    return 0;
+}
+
 int DoInjurePool(int argc, const char** argv) {
     std::string featuresPath;
     double injureFactor = 1e-3;
@@ -255,6 +317,7 @@ int main(int argc, const char** argv) {
     modeChooser.Add("learn", &DoLearn, "learn model from features");
     modeChooser.Add("predict", &DoPredict, "apply learned model to features");
     modeChooser.Add("cv", &DoCrossValidation, "run cross-validation check");
+    modeChooser.Add("research-methods", &DoResearchMethods, "research learning methods on set of injured pools");
     modeChooser.Add("injure-pool", &DoInjurePool, "create injured pool from source features");
     modeChooser.Add("to-vowpal-wabbit", &ToVowpalWabbit, "create VowpalWabbit-compatible pool");
     modeChooser.Add("to-svm-light", &ToSVMLight, "create SVMLight-compatible pool");
