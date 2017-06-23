@@ -203,8 +203,8 @@ int DoCrossValidation(int argc, const char** argv) {
 
 int DoInjurePool(int argc, const char** argv) {
     std::string featuresPath;
-    double injureFactor = 1000;
-    double injureOffset = 1000;
+    double injureFactor = 1e-3;
+    double injureOffset = 1e+3;
 
     {
         TArgsParser argsParser;
