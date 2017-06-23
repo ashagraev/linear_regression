@@ -86,6 +86,8 @@ int DoLearn(int argc, const char** argv) {
         linearModel.SaveToFile(modelPath);
     }
 
+    std::cout << "learn rmse: " << RMSE(learnIterator, linearModel) << std::endl;
+
     return 0;
 }
 
