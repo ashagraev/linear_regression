@@ -120,11 +120,65 @@ int DoPredict(int argc, const char** argv) {
     return 0;
 }
 
+double CrossValidation(
+    const TPool& pool,
+    const size_t foldsCount,
+    const size_t runsCount,
+    const std::string& learningMode,
+    const std::string verboseMode, bool verbose)
+{
+    TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
+    TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
+
+    TMeanCalculator meanRMSECalculator;
+    for (size_t runIdx = 0; runIdx < runsCount; ++runIdx) {
+        learnIterator.ResetShuffle();
+        testIterator.ResetShuffle();
+
+        TMeanCalculator meanFoldRMSECalculator;
+        for (size_t fold = 0; fold < foldsCount; ++fold) {
+            learnIterator.SetTestFold(fold);
+            testIterator.SetTestFold(fold);
+
+            const TLinearModel linearModel = Solve(learnIterator, learningMode);
+            const double rmse = RMSE(testIterator, linearModel);
+
+            if (verbose && verboseMode == "folds") {
+                std::cout << "    ";
+                if (runsCount > 1) {
+                    std::cout << "    run #" << runIdx << ", ";
+                }
+                std::cout << "fold #" << fold << ": RMSE = " << rmse << std::endl;
+            }
+
+            meanFoldRMSECalculator.Add(rmse);
+        }
+
+        if (verbose && verboseMode != "overall") {
+            if (runsCount > 1) {
+                std::cout << "    run #" << runIdx << ", ";
+            }
+            std::cout << "CV RMSE: " << meanFoldRMSECalculator.GetMean() << std::endl;
+        }
+
+        meanRMSECalculator.Add(meanFoldRMSECalculator.GetMean());
+    }
+
+    if (verbose && runsCount > 1) {
+        std::cout << "CV RMSE over " << runsCount << " runs: " << meanRMSECalculator.GetMean() << std::endl;
+    }
+
+    return meanRMSECalculator.GetMean();
+}
+
 int DoCrossValidation(int argc, const char** argv) {
     std::string featuresPath;
 
     std::string learningMode = "welford_lr";
     size_t foldsCount = 5;
+    size_t runsCount = 1;
+
+    std::string verboseMode = "folds";
 
     {
         TArgsParser argsParser;
@@ -132,6 +186,9 @@ int DoCrossValidation(int argc, const char** argv) {
         argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr").Optional();
 
         argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
+        argsParser.AddHandler("runs", &runsCount, "cross-validation runs count").Optional();
+
+        argsParser.AddHandler("verbose", &verboseMode, "verbose mode, one of: folds, cv, overall").Optional();
 
         argsParser.DoParse(argc, argv);
     }
@@ -139,23 +196,7 @@ int DoCrossValidation(int argc, const char** argv) {
     TPool pool;
     pool.ReadFromFeatures(featuresPath);
 
-    TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
-    TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
-
-    TMeanCalculator meanRMSECalculator;
-    for (size_t fold = 0; fold < foldsCount; ++fold) {
-        learnIterator.SetTestFold(fold);
-        testIterator.SetTestFold(fold);
-
-        const TLinearModel linearModel = Solve(learnIterator, learningMode);
-        const double rmse = RMSE(testIterator, linearModel);
-
-        std::cout << "fold #" << fold << ": RMSE = " << rmse << std::endl;
-
-        meanRMSECalculator.Add(rmse);
-    }
-
-    std::cout << "CV RMSE: " << meanRMSECalculator.GetMean() << std::endl;
+    CrossValidation(pool, foldsCount, runsCount, learningMode, verboseMode, true);
 
     return 0;
 }
