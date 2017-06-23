@@ -216,7 +216,7 @@ int DoInjurePool(int argc, const char** argv) {
 
     TPool pool;
     pool.ReadFromFeatures(featuresPath);
-    pool.InjurePool(injureFactor, injureOffset);
+    pool = pool.InjurePool(injureFactor, injureOffset);
     pool.PrintForFeatures(std::cout);
     return 0;
 }
