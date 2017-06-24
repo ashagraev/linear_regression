@@ -142,20 +142,20 @@ int DoCrossValidation(int argc, const char** argv) {
     TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
     TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
-    TMeanCalculator meanRMSECalculator;
+    TMeanCalculator meanDeterminationCoefficientCalculator;
     for (size_t fold = 0; fold < foldsCount; ++fold) {
         learnIterator.SetTestFold(fold);
         testIterator.SetTestFold(fold);
 
         const TLinearModel linearModel = Solve(learnIterator, learningMode);
-        const double rmse = RMSE(testIterator, linearModel);
+        const double determinationCoefficient = DeterminationCoefficient(testIterator, linearModel);
 
-        std::cout << "fold #" << fold << ": RMSE = " << rmse << std::endl;
+        std::cout << "fold #" << fold << ": R^2 = " << determinationCoefficient << std::endl;
 
-        meanRMSECalculator.Add(rmse);
+        meanDeterminationCoefficientCalculator.Add(determinationCoefficient);
     }
 
-    std::cout << "CV RMSE: " << meanRMSECalculator.GetMean() << std::endl;
+    std::cout << "CV R^2: " << meanDeterminationCoefficientCalculator.GetMean() << std::endl;
 
     return 0;
 }
