@@ -17,20 +17,23 @@ double TMeanCalculator::GetSumWeights() const {
     return SumWeights;
 }
 
-void TDeviationCalculator::Add(const double value, const double weight /*= 1.*/) {
+void TVarianceCalculator::Add(const double value, const double weight /*= 1.*/) {
     const double lastMean = MeanCalculator.GetMean();
     MeanCalculator.Add(value, weight);
-    Deviation += weight * (value - lastMean) * (value - MeanCalculator.GetMean());
+
+    const double sumWeights = MeanCalculator.GetSumWeights();
+    if (!sumWeights) {
+        return;
+    }
+
+    Variance *= 1. - weight / sumWeights;
+    Variance += weight * (value - lastMean) * (value - MeanCalculator.GetMean()) / sumWeights;
 }
 
-double TDeviationCalculator::GetMean() const {
+double TVarianceCalculator::GetMean() const {
     return MeanCalculator.GetMean();
 }
 
-double TDeviationCalculator::GetDeviation() const {
-    return Deviation;
-}
-
-double TDeviationCalculator::GetSumWeights() const {
-    return MeanCalculator.GetSumWeights();
+double TVarianceCalculator::GetVariance() const {
+    return Variance;
 }
