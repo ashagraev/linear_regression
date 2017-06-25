@@ -93,7 +93,7 @@ private:
     std::vector<TFuncInfo> FunctionInfos;
     std::unordered_map<std::string, TMainFunc*> Functions;
 public:
-    void Add(const std::string& arg, TMainFunc* function, const std::string description) {
+    void Add(const std::string& arg, TMainFunc* function, const std::string& description) {
         FunctionInfos.push_back({arg, description});
         Functions[arg] = function;
     }
