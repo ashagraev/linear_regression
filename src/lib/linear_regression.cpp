@@ -60,7 +60,7 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
 
         LastMeans[featureNumber] = weight * (feature - featureMean);
         featureMean += weight * (feature - featureMean) / SumWeights;
-        NewMeans[featureNumber] = feature - featureMean;;
+        NewMeans[featureNumber] = feature - featureMean;
     }
 
     {
