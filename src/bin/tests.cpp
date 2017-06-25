@@ -132,12 +132,12 @@ namespace {
         TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
         TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
 
-        const double fbslrRMSE = RMSE(learnIterator, fbslrModel);
-        const double kbslrRMSE = RMSE(learnIterator, kbslrModel);
-        const double wbslrRMSE = RMSE(learnIterator, wbslrModel);
+        const double fbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, fbslrModel).RMSE();
+        const double kbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, kbslrModel).RMSE();
+        const double wbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, wbslrModel).RMSE();
 
-        const double flrRMSE = RMSE(learnIterator, flrModel);
-        const double wlrRMSE = RMSE(learnIterator, wlrModel);
+        const double flrRMSE = TRegressionMetricsCalculator::Build(learnIterator, flrModel).RMSE();
+        const double wlrRMSE = TRegressionMetricsCalculator::Build(learnIterator, wlrModel).RMSE();
 
         size_t errorsCount = 0;
 
