@@ -33,7 +33,7 @@ public:
     TLinearModel Solve() const;
     double SumSquaredErrors() const;
 private:
-    bool PrepareMeans(const std::vector<double>& features, const double goal, const double weight);
+    bool PrepareMeans(const std::vector<double>& features, const double weight);
 };
 
 class TPreciseWelfordLRSolver {
@@ -54,5 +54,5 @@ public:
     TLinearModel Solve() const;
     double MeanSquaredError() const;
 private:
-    bool PrepareMeans(const std::vector<double>& features, const double goal, const double weight);
+    bool PrepareMeans(const std::vector<double>& features, const double weight);
 };

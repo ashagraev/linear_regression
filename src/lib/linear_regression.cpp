@@ -52,7 +52,7 @@ double TFastLRSolver::SumSquaredErrors() const {
     return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
 }
 
-bool TWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double goal, const double weight) {
+bool TWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
     const size_t featuresCount = features.size();
 
     if (FeatureMeans.empty()) {
@@ -82,7 +82,7 @@ bool TWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const d
 }
 
 void TWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
-    if (!PrepareMeans(features, goal, weight)) {
+    if (!PrepareMeans(features, weight)) {
         return;
     }
 
@@ -131,7 +131,7 @@ double TWelfordLRSolver::SumSquaredErrors() const {
     return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
-bool TPreciseWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double goal, const double weight) {
+bool TPreciseWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
     const size_t featuresCount = features.size();
 
     if (FeatureMeans.empty()) {
@@ -161,7 +161,7 @@ bool TPreciseWelfordLRSolver::PrepareMeans(const std::vector<double>& features, 
 }
 
 void TPreciseWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
-    if (!PrepareMeans(features, goal, weight)) {
+    if (!PrepareMeans(features, weight)) {
         return;
     }
 
