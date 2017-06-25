@@ -45,7 +45,7 @@ namespace {
         return pool;
     }
 
-    int DoTestIterators(const TPool& pool) {
+    size_t DoTestIterators(const TPool& pool) {
         size_t errorsCount = 0;
 
         TPool::TSimpleIterator iterator = pool.Iterator();
@@ -68,7 +68,7 @@ namespace {
         return errorsCount;
     }
 
-    int DoTestCrossValidationIterators(const TPool& pool) {
+    size_t DoTestCrossValidationIterators(const TPool& pool) {
         size_t errorsCount = 0;
 
         const size_t foldsCount = 10;
@@ -122,7 +122,7 @@ namespace {
         return errorsCount;
     }
 
-    int DoTestLRModels(const TPool& pool) {
+    size_t DoTestLRModels(const TPool& pool) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
 
         TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(learnIterator);
@@ -205,5 +205,5 @@ int DoTest(int argc, const char** argv) {
     std::cerr << std::endl;
     std::cerr << "total errors count: " << errorsCount << std::endl;
 
-    return errorsCount;
+    return errorsCount == 0;
 }
