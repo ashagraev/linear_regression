@@ -36,6 +36,27 @@ private:
     bool PrepareMeans(const std::vector<double>& features, const double goal, const double weight);
 };
 
+class TPreciseWelfordLRSolver {
+private:
+    double GoalsMean = 0.;
+    double GoalsDeviation = 0.;
+
+    std::vector<double> FeatureMeans;
+    std::vector<double> FeatureWeightedDeviationFromLastMean;
+    std::vector<double> FeatureDeviationFromNewMean;
+    std::vector<double> LinearizedOLSMatrix;
+
+    std::vector<double> OLSVector;
+
+    TKahanAccumulator SumWeights;
+public:
+    void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
+    TLinearModel Solve() const;
+    double MeanSquaredError() const;
+private:
+    bool PrepareMeans(const std::vector<double>& features, const double goal, const double weight);
+};
+
 template <typename TStoreType>
 class TTypedFastSLRSolver {
 private:
