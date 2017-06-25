@@ -26,8 +26,7 @@ void TVarianceCalculator::Add(const double value, const double weight /*= 1.*/) 
         return;
     }
 
-    Variance *= 1. - weight / sumWeights;
-    Variance += weight * (value - lastMean) * (value - MeanCalculator.GetMean()) / sumWeights;
+    Variance += weight * ((value - lastMean) * (value - MeanCalculator.GetMean()) - Variance) / sumWeights;
 }
 
 double TVarianceCalculator::GetMean() const {
