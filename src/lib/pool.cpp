@@ -201,8 +201,8 @@ size_t TPool::TSimpleIterator::GetInstanceIdx() const {
 TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount, const TPool::ECVIteratorType iteratorType)
     : ParentPool(parentPool)
     , FoldsCount(foldsCount)
-    , TestFoldNumber((size_t)-1)
     , IteratorType(iteratorType)
+    , TestFoldNumber((size_t)-1)
     , InstanceFoldNumbers(ParentPool.size())
     , Current(InstanceFoldNumbers.begin())
 {
