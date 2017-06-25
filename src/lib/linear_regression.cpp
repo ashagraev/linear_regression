@@ -37,7 +37,7 @@ void TFastLRSolver::Add(const std::vector<double>& features, const double goal, 
     SumSquaredGoals += goal * goal * weight;
 }
 
-void TWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
+bool TWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double goal, const double weight) {
     const size_t featuresCount = features.size();
 
     if (FeatureMeans.empty()) {
@@ -51,7 +51,7 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
 
     SumWeights += weight;
     if (!SumWeights) {
-        return;
+        return false;
     }
 
     for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
@@ -61,6 +61,14 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
         FeatureWeightedDeviationFromLastMean[featureNumber] = weight * (feature - featureMean);
         featureMean += weight * (feature - featureMean) / SumWeights;
         FeatureDeviationFromNewMean[featureNumber] = feature - featureMean;
+    }
+
+    return true;
+}
+
+void TWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
+    if (!PrepareMeans(features, goal, weight)) {
+        return;
     }
 
     {
