@@ -17,6 +17,6 @@ public:
         for (; iterator.IsValid(); ++iterator) {
             rmc.Add(model.Prediction(*iterator), iterator->Goal, iterator->Weight);
         }
-        return rms;
+        return rmc;
     }
 };
