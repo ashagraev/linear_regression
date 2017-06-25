@@ -74,6 +74,7 @@ int DoLearn(int argc, const char** argv) {
         argsParser.AddHandler("features", &featuresPath, "features file path").Required();
 
         argsParser.AddHandler("model", &modelPath, "resulting model path").Optional();
+        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, precise_welford_lr").Optional();
 
         argsParser.DoParse(argc, argv);
     }
@@ -133,6 +134,7 @@ int DoCrossValidation(int argc, const char** argv) {
     {
         TArgsParser argsParser;
         argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, precise_welford_lr").Optional();
 
         argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
 
