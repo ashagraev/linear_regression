@@ -19,7 +19,7 @@ struct TLinearModel {
 
     template <typename T>
     double Prediction(const std::vector<T>& features) const {
-        return inner_product(Coefficients.begin(), Coefficients.end(), features.begin(), Intercept);
+        return std::inner_product(Coefficients.begin(), Coefficients.end(), features.begin(), Intercept);
     }
 
     double Prediction(const TInstance& instance) const {
