@@ -1,5 +1,6 @@
 #include "args.h"
 #include "tests.h"
+#include "timer.h"
 
 #include "../lib/linear_regression.h"
 #include "../lib/simple_linear_regression.h"
@@ -82,10 +83,17 @@ int DoLearn(int argc, const char** argv) {
     }
 
     TPool pool;
-    pool.ReadFromFeatures(featuresPath);
+    {
+        TTimer timer("pool read in");
+        pool.ReadFromFeatures(featuresPath);
+    }
 
     TPool::TSimpleIterator learnIterator(pool);
-    const TLinearModel linearModel = Solve(learnIterator, learningMode);
+    TLinearModel linearModel;
+    {
+        TTimer timer("model learned in");
+        linearModel = Solve(learnIterator, learningMode);
+    }
 
     if (!modelPath.empty()) {
         linearModel.SaveToFile(modelPath);
