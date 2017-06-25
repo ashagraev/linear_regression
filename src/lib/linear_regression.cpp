@@ -75,14 +75,12 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
     }
 
     {
-        std::vector<double>::const_iterator feature = features.begin();
-        std::vector<double>::const_iterator featureMean = FeatureMeans.begin();
+        std::vector<double>::const_iterator featureNewMeanDeviation = FeatureDeviationFromNewMean.begin();
         std::vector<double>::iterator olsVectorElement = OLSVector.begin();
         const double weightedGoalDeviation = weight * (goal - GoalsMean);
         for (size_t firstFeatureNumber = 0; firstFeatureNumber < features.size(); ++firstFeatureNumber) {
-            *olsVectorElement += weightedGoalDeviation * (*feature - *featureMean);
-            ++feature;
-            ++featureMean;
+            *olsVectorElement += weightedGoalDeviation * *featureNewMeanDeviation;
+            ++featureNewMeanDeviation;
             ++olsVectorElement;
         }
     }
