@@ -75,15 +75,15 @@ void TArgsParser::PrintHelp() const {
 
     const std::string tab = "    ";
     const std::string halfTab = "  ";
-    const std::string required = "REQUIRED";
-    const std::string optional = "OPTIONAL";
-    const std::string default = "DEFAULT: ";
+    const std::string requiredStr = "REQUIRED";
+    const std::string optionalStr = "OPTIONAL";
+    const std::string defaultStr = "DEFAULT: ";
 
     const size_t commonPrefixLength =
         tab.length() * 3 +
         halfTab.length() +
-        std::max(required.length(), optional.length()) +
-        default.length() +
+        std::max(requiredStr.length(), optionalStr.length()) +
+        defaultStr.length() +
         maxKeyLength +
         maxDefaultLength;
 
@@ -96,10 +96,10 @@ void TArgsParser::PrintHelp() const {
 
         auto&& parser = Parsers.find(key);
         if (parser->second->IsRequired()) {
-            line << required << halfTab;
+            line << requiredStr << halfTab;
         } else {
-            line << optional << halfTab;
-            line << default << parser->second->GetValue();
+            line << optionalStr << halfTab;
+            line << defaultStr << parser->second->GetValue();
         }
 
         for (size_t i = line.str().length(); i < commonPrefixLength; ++i) {
