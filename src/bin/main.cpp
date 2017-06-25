@@ -86,7 +86,9 @@ int DoLearn(int argc, const char** argv) {
         linearModel.SaveToFile(modelPath);
     }
 
-    std::cout << "learn rmse: " << RMSE(learnIterator, linearModel) << std::endl;
+    TRegressionMetricsCalculator rmc = TRegressionMetricsCalculator::Build(learnIterator, linearModel);
+    std::cout << "learn rmse: " << rmc.RMSE() << std::endl;
+    std::cout << "learn R^2:  " << rmc.DeterminationCoefficient() << std::endl;
 
     return 0;
 }
