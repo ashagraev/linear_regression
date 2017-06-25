@@ -68,8 +68,8 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
         std::vector<double>::iterator lastMeanDeviation = FeatureWeightedDeviationFromLastMean.begin();
         std::vector<double>::iterator newMeanDeviation = FeatureDeviationFromNewMean.begin();
         for (; lastMeanDeviation != FeatureWeightedDeviationFromLastMean.end(); ++lastMeanDeviation, ++newMeanDeviation) {
-            for (std::vector<double>::iterator secondNewFeatureMean = newMeanDeviation; secondNewFeatureMean != FeatureDeviationFromNewMean.end(); ++secondNewFeatureMean) {
-                *olsMatrixElement += *lastMeanDeviation * *secondNewFeatureMean - *olsMatrixElement;
+            for (std::vector<double>::iterator secondFeatureNewMeanDeviation = newMeanDeviation; secondFeatureNewMeanDeviation != FeatureDeviationFromNewMean.end(); ++secondFeatureNewMeanDeviation) {
+                *olsMatrixElement += *lastMeanDeviation * *secondFeatureNewMeanDeviation - *olsMatrixElement;
             }
         }
     }
