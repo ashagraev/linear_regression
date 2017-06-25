@@ -148,7 +148,7 @@ int DoCrossValidation(int argc, const char** argv) {
         testIterator.SetTestFold(fold);
 
         const TLinearModel linearModel = Solve(learnIterator, learningMode);
-        const double determinationCoefficient = DeterminationCoefficient(testIterator, linearModel);
+        const double determinationCoefficient = TRegressionMetricsCalculator::Build(testIterator, linearModel).DeterminationCoefficient();
 
         std::cout << "fold #" << fold << ": R^2 = " << determinationCoefficient << std::endl;
 
