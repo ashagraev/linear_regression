@@ -1,5 +1,3 @@
-#pragma once
-
 #include "../lib/linear_regression.h"
 #include "../lib/simple_linear_regression.h"
 
