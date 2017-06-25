@@ -150,7 +150,7 @@ public:
 
         double sse = SLRSolvers.begin()->SumSquaredErrors(regularizationParameter);
         for (const TWelfordSLRSolver& solver : SLRSolvers) {
-            sse = min(solver.SumSquaredErrors(regularizationParameter), sse);
+            sse = std::min(solver.SumSquaredErrors(regularizationParameter), sse);
         }
         return sse;
     }
