@@ -2,6 +2,8 @@
 #include "tests.h"
 
 #include "../lib/linear_regression.h"
+#include "../lib/simple_linear_regression.h"
+
 #include "../lib/metrics.h"
 #include "../lib/pool.h"
 
