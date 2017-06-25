@@ -1,4 +1,3 @@
-#include "linear_model.h"
 #include "linear_regression.h"
 
 #include <algorithm>
