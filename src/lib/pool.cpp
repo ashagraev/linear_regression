@@ -10,7 +10,6 @@ TInstance TInstance::FromFeaturesString(const std::string& featuresString) {
 
     std::stringstream featuresStream(featuresString);
 
-    std::string queryId, url;
     featuresStream >> instance.QueryId;
     featuresStream >> instance.Goal;
     featuresStream >> instance.Url;
