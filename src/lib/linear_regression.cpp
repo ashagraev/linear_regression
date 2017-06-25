@@ -42,8 +42,8 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
 
     if (FeatureMeans.empty()) {
         FeatureMeans.resize(featuresCount);
-        LastMeans.resize(featuresCount);
-        NewMeans.resize(featuresCount);
+        FeatureWeightedDeviationFromLastMean.resize(featuresCount);
+        FeatureDeviationFromNewMean.resize(featuresCount);
 
         LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
         OLSVector.resize(featuresCount);
@@ -58,17 +58,17 @@ void TWelfordLRSolver::Add(const std::vector<double>& features, const double goa
         const double feature = features[featureNumber];
         double& featureMean = FeatureMeans[featureNumber];
 
-        LastMeans[featureNumber] = weight * (feature - featureMean);
+        FeatureWeightedDeviationFromLastMean[featureNumber] = weight * (feature - featureMean);
         featureMean += weight * (feature - featureMean) / SumWeights;
-        NewMeans[featureNumber] = feature - featureMean;
+        FeatureDeviationFromNewMean[featureNumber] = feature - featureMean;
     }
 
     {
         std::vector<double>::iterator olsMatrixElement = LinearizedOLSMatrix.begin();
-        std::vector<double>::iterator lastMean = LastMeans.begin();
-        std::vector<double>::iterator newMean = NewMeans.begin();
-        for (; lastMean != LastMeans.end(); ++lastMean, ++newMean) {
-            for (std::vector<double>::iterator secondNewFeatureMean = newMean; secondNewFeatureMean != NewMeans.end(); ++secondNewFeatureMean) {
+        std::vector<double>::iterator lastMean = FeatureWeightedDeviationFromLastMean.begin();
+        std::vector<double>::iterator newMean = FeatureDeviationFromNewMean.begin();
+        for (; lastMean != FeatureWeightedDeviationFromLastMean.end(); ++lastMean, ++newMean) {
+            for (std::vector<double>::iterator secondNewFeatureMean = newMean; secondNewFeatureMean != FeatureDeviationFromNewMean.end(); ++secondNewFeatureMean) {
                 *olsMatrixElement++ += *lastMean * *secondNewFeatureMean;
             }
         }

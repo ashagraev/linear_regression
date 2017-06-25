@@ -21,8 +21,8 @@ private:
     double GoalsDeviation = 0.;
 
     std::vector<double> FeatureMeans;
-    std::vector<double> LastMeans;
-    std::vector<double> NewMeans;
+    std::vector<double> FeatureWeightedDeviationFromLastMean;
+    std::vector<double> FeatureDeviationFromNewMean;
     std::vector<double> LinearizedOLSMatrix;
 
     std::vector<double> OLSVector;
