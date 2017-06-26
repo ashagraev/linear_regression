@@ -347,7 +347,7 @@ int main(int argc, const char** argv) {
     modeChooser.Add("learn", &DoLearn, "learn model from features");
     modeChooser.Add("predict", &DoPredict, "apply learned model to features");
     modeChooser.Add("cv", &DoCrossValidation, "run cross-validation check");
-    modeChooser.Add("research-methods", &DoResearchMethods, "research learning methods on set of injured pools");
+    modeChooser.Add("research", &DoResearchMethods, "research learning methods on set of injured pools");
     modeChooser.Add("injure-pool", &DoInjurePool, "create injured pool from source features");
     modeChooser.Add("to-vowpal-wabbit", &ToVowpalWabbit, "create VowpalWabbit-compatible pool");
     modeChooser.Add("to-svm-light", &ToSVMLight, "create SVMLight-compatible pool");
