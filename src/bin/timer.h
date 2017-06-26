@@ -19,7 +19,9 @@ public:
     }
 
     ~TTimer() {
-        std::cout << Title << " " << GetSecondsPassed() << "s" << std::endl;
+        if (!Title.empty()) {
+            std::cout << Title << " " << GetSecondsPassed() << "s" << std::endl;
+        }
     }
 
     double GetSecondsPassed() const {
