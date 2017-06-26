@@ -257,7 +257,7 @@ int DoResearchMethods(int argc, const char** argv) {
         }
     }
 
-    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr" };
+    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr", "precise_welford_lr" };
     std::vector<std::vector<double>> scores(learningModes.size());
 
     for (const std::pair<double, double>& injureFactorAndOffset : injureFactorsAndOffsets) {
@@ -275,7 +275,7 @@ int DoResearchMethods(int argc, const char** argv) {
             std::stringstream ss;
             ss << "   ";
             ss << learningModes[methodIdx];
-            while (ss.str().size() < 20) {
+            while (ss.str().size() < 25) {
                 ss << " ";
             }
 
