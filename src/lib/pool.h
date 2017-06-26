@@ -58,7 +58,7 @@ public:
         size_t GetInstanceIdx() const;
     };
 
-    class TPool::TCVIterator {
+    class TCVIterator {
     private:
         const TPool& ParentPool;
 

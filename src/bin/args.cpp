@@ -6,57 +6,53 @@
 #include <unordered_set>
 
 void TArgsParser::DoParse(int argc, const char** argv) const {
-    try {
-        std::unordered_set<std::string> usedKeys;
-
-        while (argc) {
-            std::string argument = argv[0];
-
-            auto parser = Parsers.find(argument);
-            if (parser == Parsers.end()) {
-                std::string message = "unknown argument: " + argument;
-                throw std::exception(message.c_str());
-            }
-
-            if (argc < 2) {
-                std::string message = "missing parameter for " + argument;
-                throw std::exception(message.c_str());
-            }
-
-            usedKeys.insert(argument);
-            parser->second->SetValue(argv[1]);
-
-            argc -= 2;
-            argv += 2;
-        }
-
-        std::vector<std::string> lostArguments;
-        for (auto&& keyWithParser : Parsers) {
-            if (!keyWithParser.second->IsRequired()) {
-                continue;
-            }
-
-            const std::string& key = keyWithParser.first;
-            if (usedKeys.find(key) == usedKeys.end()) {
-                lostArguments.push_back(key);
-            }
-        }
-
-        if (!lostArguments.empty()) {
-            std::string message = "those arguments are required: ";
-            message += lostArguments.front();
-            for (size_t i = 1; i < lostArguments.size(); ++i) {
-                message += ", " + lostArguments[i];
-            }
-            throw std::exception(message.c_str());
-        }
-    } catch (std::exception ex) {
-        std::cerr << ex.what();
-        std::cerr << std::endl;
-        PrintHelp();
-
+    auto callError = [this](const std::string& message) {
+        std::cerr << message << std::endl;
+        this->PrintHelp();
         exit(1);
-    } 
+    };
+
+    std::unordered_set<std::string> usedKeys;
+
+    while (argc) {
+        std::string argument = argv[0];
+
+        auto parser = Parsers.find(argument);
+        if (parser == Parsers.end()) {
+            callError("unknown argument: " + argument);
+        }
+
+        if (argc < 2) {
+            callError("missing parameter for " + argument);
+        }
+
+        usedKeys.insert(argument);
+        parser->second->SetValue(argv[1]);
+
+        argc -= 2;
+        argv += 2;
+    }
+
+    std::vector<std::string> lostArguments;
+    for (auto&& keyWithParser : Parsers) {
+        if (!keyWithParser.second->IsRequired()) {
+            continue;
+        }
+
+        const std::string& key = keyWithParser.first;
+        if (usedKeys.find(key) == usedKeys.end()) {
+            lostArguments.push_back(key);
+        }
+    }
+
+    if (!lostArguments.empty()) {
+        std::string message = "those arguments are required: ";
+        message += lostArguments.front();
+        for (size_t i = 1; i < lostArguments.size(); ++i) {
+            message += ", " + lostArguments[i];
+        }
+        callError(message);
+    }
 }
 
 void TArgsParser::PrintHelp() const {
@@ -75,15 +71,15 @@ void TArgsParser::PrintHelp() const {
 
     const std::string tab = "    ";
     const std::string halfTab = "  ";
-    const std::string required = "REQUIRED";
-    const std::string optional = "OPTIONAL";
-    const std::string default = "DEFAULT: ";
+    const std::string requiredStr = "REQUIRED";
+    const std::string optionalStr = "OPTIONAL";
+    const std::string defaultStr = "DEFAULT: ";
 
     const size_t commonPrefixLength =
         tab.length() * 3 +
         halfTab.length() +
-        std::max(required.length(), optional.length()) +
-        default.length() +
+        std::max(requiredStr.length(), optionalStr.length()) +
+        defaultStr.length() +
         maxKeyLength +
         maxDefaultLength;
 
@@ -96,10 +92,10 @@ void TArgsParser::PrintHelp() const {
 
         auto&& parser = Parsers.find(key);
         if (parser->second->IsRequired()) {
-            line << required << halfTab;
+            line << requiredStr << halfTab;
         } else {
-            line << optional << halfTab;
-            line << default << parser->second->GetValue();
+            line << optionalStr << halfTab;
+            line << defaultStr << parser->second->GetValue();
         }
 
         for (size_t i = line.str().length(); i < commonPrefixLength; ++i) {

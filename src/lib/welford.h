@@ -12,14 +12,13 @@ public:
     double GetSumWeights() const;
 };
 
-class TDeviationCalculator {
+class TVarianceCalculator {
 private:
-    double Deviation = 0.;
+    double Variance = 0.;
     TMeanCalculator MeanCalculator;
 public:
     void Add(const double value, const double weight = 1.);
 
     double GetMean() const;
-    double GetDeviation() const;
-    double GetSumWeights() const;
+    double GetVariance() const;
 };

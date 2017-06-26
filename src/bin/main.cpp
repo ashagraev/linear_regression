@@ -1,7 +1,10 @@
 #include "args.h"
 #include "tests.h"
+#include "timer.h"
 
 #include "../lib/linear_regression.h"
+#include "../lib/simple_linear_regression.h"
+
 #include "../lib/metrics.h"
 #include "../lib/pool.h"
 
@@ -56,6 +59,9 @@ TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
     if (learningMode == "welford_lr") {
         linearModel = Solve<TWelfordLRSolver>(iterator);
     }
+    if (learningMode == "precise_welford_lr") {
+        linearModel = Solve<TPreciseWelfordLRSolver>(iterator);
+    }
     return linearModel;
 }
 
@@ -71,22 +77,31 @@ int DoLearn(int argc, const char** argv) {
         argsParser.AddHandler("features", &featuresPath, "features file path").Required();
 
         argsParser.AddHandler("model", &modelPath, "resulting model path").Optional();
-        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr").Optional();
+        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, precise_welford_lr").Optional();
 
         argsParser.DoParse(argc, argv);
     }
 
     TPool pool;
-    pool.ReadFromFeatures(featuresPath);
+    {
+        TTimer timer("pool read in");
+        pool.ReadFromFeatures(featuresPath);
+    }
 
     TPool::TSimpleIterator learnIterator(pool);
-    const TLinearModel linearModel = Solve(learnIterator, learningMode);
+    TLinearModel linearModel;
+    {
+        TTimer timer("model learned in");
+        linearModel = Solve(learnIterator, learningMode);
+    }
 
     if (!modelPath.empty()) {
         linearModel.SaveToFile(modelPath);
     }
 
-    std::cout << "learn rmse: " << RMSE(learnIterator, linearModel) << std::endl;
+    TRegressionMetricsCalculator rmc = TRegressionMetricsCalculator::Build(learnIterator, linearModel);
+    std::cout << "learn rmse: " << rmc.RMSE() << std::endl;
+    std::cout << "learn R^2:  " << rmc.DeterminationCoefficient() << std::endl;
 
     return 0;
 }
@@ -130,45 +145,45 @@ double CrossValidation(
     TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
     TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
-    TMeanCalculator meanRMSECalculator;
+    TMeanCalculator meanDeterminationCoefficientCalculator;
     for (size_t runIdx = 0; runIdx < runsCount; ++runIdx) {
         learnIterator.ResetShuffle();
         testIterator.ResetShuffle();
 
-        TMeanCalculator meanFoldRMSECalculator;
+        TMeanCalculator meanFoldDeterminationCoefficientCalculator;
         for (size_t fold = 0; fold < foldsCount; ++fold) {
             learnIterator.SetTestFold(fold);
             testIterator.SetTestFold(fold);
 
             const TLinearModel linearModel = Solve(learnIterator, learningMode);
-            const double rmse = RMSE(testIterator, linearModel);
+            const double determinationCoefficient = TRegressionMetricsCalculator::Build(testIterator, linearModel).DeterminationCoefficient();
 
             if (verbose && verboseMode == "folds") {
                 std::cout << "    ";
                 if (runsCount > 1) {
                     std::cout << "    run #" << runIdx << ", ";
                 }
-                std::cout << "fold #" << fold << ": RMSE = " << rmse << std::endl;
+                std::cout << "fold #" << fold << ": R^2 = " << determinationCoefficient << std::endl;
             }
 
-            meanFoldRMSECalculator.Add(rmse);
+            meanFoldDeterminationCoefficientCalculator.Add(determinationCoefficient);
         }
 
         if (verbose && verboseMode != "overall") {
             if (runsCount > 1) {
                 std::cout << "    run #" << runIdx << ", ";
             }
-            std::cout << "CV RMSE: " << meanFoldRMSECalculator.GetMean() << std::endl;
+            std::cout << "CV R^2: " << meanFoldDeterminationCoefficientCalculator.GetMean() << std::endl;
         }
 
-        meanRMSECalculator.Add(meanFoldRMSECalculator.GetMean());
+        meanDeterminationCoefficientCalculator.Add(meanFoldDeterminationCoefficientCalculator.GetMean());
     }
 
     if (verbose && runsCount > 1) {
-        std::cout << "CV RMSE over " << runsCount << " runs: " << meanRMSECalculator.GetMean() << std::endl;
+        std::cout << "CV RMSE over " << runsCount << " runs: " << meanDeterminationCoefficientCalculator.GetMean() << std::endl;
     }
 
-    return meanRMSECalculator.GetMean();
+    return meanDeterminationCoefficientCalculator.GetMean();
 }
 
 int DoCrossValidation(int argc, const char** argv) {
@@ -183,7 +198,7 @@ int DoCrossValidation(int argc, const char** argv) {
     {
         TArgsParser argsParser;
         argsParser.AddHandler("features", &featuresPath, "features file path").Required();
-        argsParser.AddHandler("learning-mode", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr").Optional();
+        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, precise_welford_lr").Optional();
 
         argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
         argsParser.AddHandler("runs", &runsCount, "cross-validation runs count").Optional();
@@ -194,7 +209,10 @@ int DoCrossValidation(int argc, const char** argv) {
     }
 
     TPool pool;
-    pool.ReadFromFeatures(featuresPath);
+    {
+        TTimer timer("pool read in");
+        pool.ReadFromFeatures(featuresPath);
+    }
 
     CrossValidation(pool, foldsCount, runsCount, learningMode, verboseMode, true);
 

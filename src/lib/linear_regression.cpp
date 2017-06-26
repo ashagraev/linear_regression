@@ -1,4 +1,3 @@
-#include "linear_model.h"
 #include "linear_regression.h"
 
 #include <algorithm>
@@ -14,7 +13,6 @@ namespace NLinearRegressionInner {
                             const std::vector<double>& solution,
                             const double goalsDeviation);
 }
-
 
 void TFastLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
     const size_t featuresCount = features.size();
@@ -37,51 +35,6 @@ void TFastLRSolver::Add(const std::vector<double>& features, const double goal, 
     SumSquaredGoals += goal * goal * weight;
 }
 
-void TWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
-    const size_t featuresCount = features.size();
-
-    if (FeatureMeans.empty()) {
-        FeatureMeans.resize(featuresCount);
-        LastMeans.resize(featuresCount);
-        NewMeans.resize(featuresCount);
-
-        LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
-        OLSVector.resize(featuresCount);
-    }
-
-    SumWeights += weight;
-    if (!SumWeights) {
-        return;
-    }
-
-    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
-        const double feature = features[featureNumber];
-        double& featureMean = FeatureMeans[featureNumber];
-
-        LastMeans[featureNumber] = weight * (feature - featureMean);
-        featureMean += weight * (feature - featureMean) / SumWeights;
-        NewMeans[featureNumber] = feature - featureMean;;
-    }
-
-    std::vector<double>::iterator olsMatrixElement = LinearizedOLSMatrix.begin();
-
-    std::vector<double>::iterator lastMean = LastMeans.begin();
-    std::vector<double>::iterator newMean = NewMeans.begin();
-    for (; lastMean != LastMeans.end(); ++lastMean, ++newMean) {
-        for (std::vector<double>::iterator secondFeatureMean = newMean; secondFeatureMean != NewMeans.end(); ++secondFeatureMean) {
-            *olsMatrixElement++ += *lastMean * *secondFeatureMean;
-        }
-    }
-
-    for (size_t firstFeatureNumber = 0; firstFeatureNumber < features.size(); ++firstFeatureNumber) {
-        OLSVector[firstFeatureNumber] += weight * (features[firstFeatureNumber] - FeatureMeans[firstFeatureNumber]) * (goal - GoalsMean);
-    }
-
-    const double oldGoalsMean = GoalsMean;
-    GoalsMean += weight * (goal - GoalsMean) / SumWeights;
-    GoalsDeviation += weight * (goal - oldGoalsMean) * (goal - GoalsMean);
-}
-
 TLinearModel TFastLRSolver::Solve() const {
     TLinearModel linearModel;
     linearModel.Coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
@@ -92,6 +45,72 @@ TLinearModel TFastLRSolver::Solve() const {
     }
 
     return linearModel;
+}
+
+double TFastLRSolver::SumSquaredErrors() const {
+    const std::vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
+    return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
+}
+
+bool TWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
+    const size_t featuresCount = features.size();
+
+    if (FeatureMeans.empty()) {
+        FeatureMeans.resize(featuresCount);
+        FeatureWeightedDeviationFromLastMean.resize(featuresCount);
+        FeatureDeviationFromNewMean.resize(featuresCount);
+
+        LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
+        OLSVector.resize(featuresCount);
+    }
+
+    SumWeights += weight;
+    if (!SumWeights) {
+        return false;
+    }
+
+    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
+        const double feature = features[featureNumber];
+        double& featureMean = FeatureMeans[featureNumber];
+
+        FeatureWeightedDeviationFromLastMean[featureNumber] = weight * (feature - featureMean);
+        featureMean += weight * (feature - featureMean) / SumWeights;
+        FeatureDeviationFromNewMean[featureNumber] = feature - featureMean;
+    }
+
+    return true;
+}
+
+void TWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
+    if (!PrepareMeans(features, weight)) {
+        return;
+    }
+
+    {
+        std::vector<double>::iterator olsMatrixElement = LinearizedOLSMatrix.begin();
+        std::vector<double>::iterator lastMeanDeviation = FeatureWeightedDeviationFromLastMean.begin();
+        std::vector<double>::iterator newMeanDeviation = FeatureDeviationFromNewMean.begin();
+        for (; lastMeanDeviation != FeatureWeightedDeviationFromLastMean.end(); ++lastMeanDeviation, ++newMeanDeviation) {
+            for (std::vector<double>::iterator secondFeatureNewMeanDeviation = newMeanDeviation; secondFeatureNewMeanDeviation != FeatureDeviationFromNewMean.end(); ++secondFeatureNewMeanDeviation) {
+                *olsMatrixElement++ += *lastMeanDeviation * *secondFeatureNewMeanDeviation;
+            }
+        }
+    }
+
+    {
+        std::vector<double>::const_iterator featureNewMeanDeviation = FeatureDeviationFromNewMean.begin();
+        std::vector<double>::iterator olsVectorElement = OLSVector.begin();
+        const double weightedGoalDeviation = weight * (goal - GoalsMean);
+        for (size_t firstFeatureNumber = 0; firstFeatureNumber < features.size(); ++firstFeatureNumber) {
+            *olsVectorElement += weightedGoalDeviation * *featureNewMeanDeviation;
+            ++featureNewMeanDeviation;
+            ++olsVectorElement;
+        }
+    }
+
+    const double oldGoalsMean = GoalsMean;
+    GoalsMean += weight * (goal - GoalsMean) / SumWeights;
+    GoalsDeviation += weight * (goal - oldGoalsMean) * (goal - GoalsMean);
 }
 
 TLinearModel TWelfordLRSolver::Solve() const {
@@ -107,39 +126,89 @@ TLinearModel TWelfordLRSolver::Solve() const {
     return model;
 }
 
-double TFastLRSolver::SumSquaredErrors() const {
-    const std::vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
-    return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, SumSquaredGoals);
-}
-
 double TWelfordLRSolver::SumSquaredErrors() const {
     const std::vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
     return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
-void TWelfordSLRSolver::Add(const double feature, const double goal, const double weight) {
+bool TPreciseWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
+    const size_t featuresCount = features.size();
+
+    if (FeatureMeans.empty()) {
+        FeatureMeans.resize(featuresCount);
+        FeatureWeightedDeviationFromLastMean.resize(featuresCount);
+        FeatureDeviationFromNewMean.resize(featuresCount);
+
+        LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
+        OLSVector.resize(featuresCount);
+    }
+
     SumWeights += weight;
     if (!SumWeights) {
+        return false;
+    }
+
+    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
+        const double feature = features[featureNumber];
+        double& featureMean = FeatureMeans[featureNumber];
+
+        FeatureWeightedDeviationFromLastMean[featureNumber] = feature - featureMean;
+        featureMean += weight * (feature - featureMean) / SumWeights;
+        FeatureDeviationFromNewMean[featureNumber] = feature - featureMean;
+    }
+
+    return true;
+}
+
+void TPreciseWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
+    if (!PrepareMeans(features, weight)) {
         return;
     }
 
-    const double weightedFeatureDiff = weight * (feature - FeaturesMean);
-    const double weightedGoalDiff = weight * (goal - GoalsMean);
+    {
+        std::vector<double>::iterator olsMatrixElement = LinearizedOLSMatrix.begin();
+        std::vector<double>::iterator lastMeanDeviation = FeatureWeightedDeviationFromLastMean.begin();
+        std::vector<double>::iterator newMeanDeviation = FeatureDeviationFromNewMean.begin();
+        for (; lastMeanDeviation != FeatureWeightedDeviationFromLastMean.end(); ++lastMeanDeviation, ++newMeanDeviation) {
+            for (std::vector<double>::iterator secondFeatureNewMeanDeviation = newMeanDeviation; secondFeatureNewMeanDeviation != FeatureDeviationFromNewMean.end(); ++secondFeatureNewMeanDeviation) {
+                *olsMatrixElement += weight * (*lastMeanDeviation * *secondFeatureNewMeanDeviation - *olsMatrixElement) / SumWeights;
+                ++olsMatrixElement;
+            }
+        }
+    }
 
-    FeaturesMean += weightedFeatureDiff / SumWeights;
-    FeaturesDeviation += weightedFeatureDiff * (feature - FeaturesMean);
+    {
+        std::vector<double>::const_iterator featureNewMeanDeviation = FeatureDeviationFromNewMean.begin();
+        std::vector<double>::iterator olsVectorElement = OLSVector.begin();
+        const double goalDeviation = goal - GoalsMean;
+        for (size_t firstFeatureNumber = 0; firstFeatureNumber < features.size(); ++firstFeatureNumber) {
+            *olsVectorElement += weight * (goalDeviation * *featureNewMeanDeviation - *olsVectorElement) / SumWeights;
+            ++featureNewMeanDeviation;
+            ++olsVectorElement;
+        }
+    }
 
-    GoalsMean += weightedGoalDiff / SumWeights;
-    GoalsDeviation += weightedGoalDiff * (goal - GoalsMean);
-
-    Covariation += weightedFeatureDiff * (goal - GoalsMean);
+    const double oldGoalsMean = GoalsMean;
+    GoalsMean += weight * (goal - GoalsMean) / SumWeights;
+    GoalsDeviation += weight * ((goal - oldGoalsMean) * (goal - GoalsMean) - GoalsDeviation) / SumWeights;
 }
 
-double TWelfordSLRSolver::SumSquaredErrors(const double regularizationParameter) const {
-    double factor, offset;
-    Solve(factor, offset, regularizationParameter);
+TLinearModel TPreciseWelfordLRSolver::Solve() const {
+    TLinearModel model;
+    model.Coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
+    model.Intercept = GoalsMean;
 
-    return factor * factor * FeaturesDeviation - 2 * factor * Covariation + GoalsDeviation;
+    const size_t featuresCount = OLSVector.size();
+    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
+        model.Intercept -= FeatureMeans[featureNumber] * model.Coefficients[featureNumber];
+    }
+
+    return model;
+}
+
+double TPreciseWelfordLRSolver::MeanSquaredError() const {
+    const std::vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
+    return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
 namespace NLinearRegressionInner {

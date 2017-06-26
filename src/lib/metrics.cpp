@@ -12,3 +12,7 @@ void TRegressionMetricsCalculator::Add(const double prediction, const double tar
 double TRegressionMetricsCalculator::RMSE() const {
     return sqrt(std::max(0., MSECalculator.GetMean()));
 }
+
+double TRegressionMetricsCalculator::DeterminationCoefficient() const {
+    return 1. - MSECalculator.GetMean() / VarianceCalculator.GetVariance();
+}

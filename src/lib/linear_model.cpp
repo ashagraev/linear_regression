@@ -10,7 +10,7 @@ void TLinearModel::SaveToFile(const std::string& modelPath) const {
     std::ofstream modelOut(modelPath);
     modelOut.precision(20);
 
-    modelOut << Coefficients.size() << " ";
+    modelOut << (unsigned int) Coefficients.size() << " ";
     modelOut << Intercept << " ";
 
     for (const double coefficient : Coefficients) {
