@@ -135,13 +135,20 @@ int DoPredict(int argc, const char** argv) {
     return 0;
 }
 
-double CrossValidation(
+struct TCrossValidationResult {
+    double MeanDeterminationCoefficient;
+    double LearningTimeInSeconds;
+};
+
+TCrossValidationResult CrossValidation(
     const TPool& pool,
     const size_t foldsCount,
     const size_t runsCount,
     const std::string& learningMode,
     const std::string verboseMode, bool verbose)
 {
+    double learningTime = 0;
+
     TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
     TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
@@ -155,7 +162,12 @@ double CrossValidation(
             learnIterator.SetTestFold(fold);
             testIterator.SetTestFold(fold);
 
-            const TLinearModel linearModel = Solve(learnIterator, learningMode);
+            TLinearModel linearModel;
+            {
+                TTimer timer;
+                linearModel = Solve(learnIterator, learningMode);
+                learningTime += timer.GetSecondsPassed();
+            }
             const double determinationCoefficient = TRegressionMetricsCalculator::Build(testIterator, linearModel).DeterminationCoefficient();
 
             if (verbose && verboseMode == "folds") {
@@ -183,7 +195,7 @@ double CrossValidation(
         std::cout << "CV RMSE over " << runsCount << " runs: " << meanDeterminationCoefficientCalculator.GetMean() << std::endl;
     }
 
-    return meanDeterminationCoefficientCalculator.GetMean();
+    return {meanDeterminationCoefficientCalculator.GetMean(), learningTime};
 }
 
 int DoCrossValidation(int argc, const char** argv) {
@@ -259,6 +271,7 @@ int DoResearchMethods(int argc, const char** argv) {
 
     const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr", "precise_welford_lr" };
     std::vector<std::vector<double>> scores(learningModes.size());
+    std::vector<double> fullLearnTime(learningModes.size());
 
     for (const std::pair<double, double>& injureFactorAndOffset : injureFactorsAndOffsets) {
         const double injureFactor = injureFactorAndOffset.first;
@@ -270,7 +283,7 @@ int DoResearchMethods(int argc, const char** argv) {
         std::cerr << "injure offset: " << injureOffset << std::endl;
 
         for (size_t methodIdx = 0; methodIdx < learningModes.size(); ++methodIdx) {
-            const double cvScore = CrossValidation(injuredPool, foldsCount, runsCount, learningModes[methodIdx], "", false);
+            const TCrossValidationResult cvResult = CrossValidation(injuredPool, foldsCount, runsCount, learningModes[methodIdx], "", false);
 
             std::stringstream ss;
             ss << "   ";
@@ -281,13 +294,29 @@ int DoResearchMethods(int argc, const char** argv) {
 
             ss.precision(5);
 
-            ss << cvScore;
+            ss << "time: " << cvResult.LearningTimeInSeconds << "    " << "R^2: " << cvResult.MeanDeterminationCoefficient;
 
             std::cerr << ss.str() << std::endl;
 
-            scores[methodIdx].push_back(cvScore);
+            scores[methodIdx].push_back(cvResult.MeanDeterminationCoefficient);
+            fullLearnTime[methodIdx] += cvResult.LearningTimeInSeconds;
         }
         std::cerr << std::endl;
+    }
+
+    std::cerr << "full learning time:" << std::endl;
+    for (size_t methodIdx = 0; methodIdx < learningModes.size(); ++methodIdx) {
+        std::stringstream ss;
+        ss << "   ";
+        ss << learningModes[methodIdx];
+        while (ss.str().size() < 25) {
+            ss << " ";
+        }
+        ss.precision(5);
+
+        ss << fullLearnTime[methodIdx] << "s";
+
+        std::cerr << ss.str() << std::endl;
     }
 
     return 0;
