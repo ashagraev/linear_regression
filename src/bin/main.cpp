@@ -150,7 +150,7 @@ int DoCrossValidation(int argc, const char** argv) {
     {
         TTimer timer("cross validation taken");
 
-        TMeanCalculator meanDeterminationCoefficientCalculator;
+        TMeanCalculator meanDCCalculator;
         for (size_t fold = 0; fold < foldsCount; ++fold) {
             learnIterator.SetTestFold(fold);
             testIterator.SetTestFold(fold);
@@ -160,10 +160,10 @@ int DoCrossValidation(int argc, const char** argv) {
 
             std::cout << "fold #" << fold << ": R^2 = " << determinationCoefficient << std::endl;
 
-            meanDeterminationCoefficientCalculator.Add(determinationCoefficient);
+            meanDCCalculator.Add(determinationCoefficient);
         }
 
-        std::cout << "CV R^2: " << meanDeterminationCoefficientCalculator.GetMean() << std::endl;
+        std::cout << "CV R^2: " << meanDCCalculator.GetMean() << std::endl;
     }
 
     return 0;
