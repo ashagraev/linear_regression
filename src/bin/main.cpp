@@ -12,19 +12,6 @@
 #include <unordered_set>
 #include <time.h>
 
-struct TRunData {
-    std::string Mode;
-
-    std::string FeaturesFilePath;
-    std::string ModelFilePath;
-
-    std::string LearningMode;
-    std::string PredictionsPath;
-
-    double InjureFactor = 1.;
-    double InjureOffset = 0.;
-};
-
 int PrintHelp() {
     std::cerr << "modes:" << std::endl;
     std::cerr << "    linear_regression learn" << std::endl;
