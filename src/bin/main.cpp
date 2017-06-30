@@ -139,12 +139,12 @@ TCrossValidationResult CrossValidation(
     TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);
     TPool::TCVIterator testIterator = pool.TestIterator(foldsCount);
 
-    TMeanCalculator meanDeterminationCoefficientCalculator;
+    TMeanCalculator meanDCCalculator;
     for (size_t runIdx = 0; runIdx < runsCount; ++runIdx) {
         learnIterator.ResetShuffle();
         testIterator.ResetShuffle();
 
-        TMeanCalculator meanFoldDeterminationCoefficientCalculator;
+        TMeanCalculator meanFoldDCCalculator;
         for (size_t fold = 0; fold < foldsCount; ++fold) {
             learnIterator.SetTestFold(fold);
             testIterator.SetTestFold(fold);
@@ -165,24 +165,24 @@ TCrossValidationResult CrossValidation(
                 std::cout << "fold #" << fold << ": R^2 = " << determinationCoefficient << std::endl;
             }
 
-            meanFoldDeterminationCoefficientCalculator.Add(determinationCoefficient);
+            meanFoldDCCalculator.Add(determinationCoefficient);
         }
 
         if (verbose && verboseMode != "overall") {
             if (runsCount > 1) {
                 std::cout << "    run #" << runIdx << ", ";
             }
-            std::cout << "CV R^2: " << meanFoldDeterminationCoefficientCalculator.GetMean() << std::endl;
+            std::cout << "CV R^2: " << meanFoldDCCalculator.GetMean() << std::endl;
         }
 
-        meanDeterminationCoefficientCalculator.Add(meanFoldDeterminationCoefficientCalculator.GetMean());
+        meanDCCalculator.Add(meanFoldDCCalculator.GetMean());
     }
 
     if (verbose && runsCount > 1) {
-        std::cout << "CV RMSE over " << runsCount << " runs: " << meanDeterminationCoefficientCalculator.GetMean() << std::endl;
+        std::cout << "CV RMSE over " << runsCount << " runs: " << meanDCCalculator.GetMean() << std::endl;
     }
 
-    return {meanDeterminationCoefficientCalculator.GetMean(), learningTime};
+    return {meanDCCalculator.GetMean(), learningTime};
 }
 
 int DoCrossValidation(int argc, const char** argv) {
