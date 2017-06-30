@@ -127,13 +127,14 @@ void TPool::ReadFromFeatures(const std::string& featuresPath) {
     }
 }
 
-TPool TPool::InjurePool(const double injureFactor, const double injureOffset) const {
+TPool TPool::InjuredPool(const double injureFactor, const double injureOffset) const {
     TPool injuredPool(*this);
 
     for (TInstance& instance : injuredPool) {
         for (double& feature : instance.Features) {
             feature = feature * injureFactor + injureOffset;
         }
+        instance.Goal = instance.Goal * injureFactor + injureOffset;
     }
 
     return injuredPool;

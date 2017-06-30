@@ -63,7 +63,7 @@ private:
 class TArgsParser {
 private:
     std::vector<std::string> ArgumentNames;
-    std::unordered_map<std::string, std::shared_ptr<TArgParser> > Parsers;
+    std::unordered_map<std::string, std::shared_ptr<TArgParser>> Parsers;
 
     std::unordered_set<std::string> RequiredArguments;
 public:
