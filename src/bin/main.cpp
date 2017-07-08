@@ -47,7 +47,7 @@ TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
         linearModel = Solve<TWelfordLRSolver>(iterator);
     }
     if (learningMode == "precise_welford_lr") {
-        linearModel = Solve<TPreciseWelfordLRSolver>(iterator);
+        linearModel = Solve<TNormalizedWelfordLRSolver>(iterator);
     }
     return linearModel;
 }

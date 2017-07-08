@@ -131,7 +131,7 @@ double TWelfordLRSolver::SumSquaredErrors() const {
     return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
-bool TPreciseWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
+bool TNormalizedWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
     const size_t featuresCount = features.size();
 
     if (FeatureMeans.empty()) {
@@ -160,7 +160,7 @@ bool TPreciseWelfordLRSolver::PrepareMeans(const std::vector<double>& features, 
     return true;
 }
 
-void TPreciseWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
+void TNormalizedWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
     if (!PrepareMeans(features, weight)) {
         return;
     }
@@ -193,7 +193,7 @@ void TPreciseWelfordLRSolver::Add(const std::vector<double>& features, const dou
     GoalsDeviation += weight * ((goal - oldGoalsMean) * (goal - GoalsMean) - GoalsDeviation) / SumWeights;
 }
 
-TLinearModel TPreciseWelfordLRSolver::Solve() const {
+TLinearModel TNormalizedWelfordLRSolver::Solve() const {
     TLinearModel model;
     model.Coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
     model.Intercept = GoalsMean;
@@ -206,7 +206,7 @@ TLinearModel TPreciseWelfordLRSolver::Solve() const {
     return model;
 }
 
-double TPreciseWelfordLRSolver::MeanSquaredError() const {
+double TNormalizedWelfordLRSolver::MeanSquaredError() const {
     const std::vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
     return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }

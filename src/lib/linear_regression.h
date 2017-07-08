@@ -36,7 +36,7 @@ private:
     bool PrepareMeans(const std::vector<double>& features, const double weight);
 };
 
-class TPreciseWelfordLRSolver {
+class TNormalizedWelfordLRSolver {
 private:
     double GoalsMean = 0.;
     double GoalsDeviation = 0.;
