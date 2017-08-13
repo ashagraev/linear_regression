@@ -4,6 +4,8 @@
 #include "linear_model.h"
 #include "welford.h"
 
+#define DefaultRegularizationParameter (1e-10)
+
 template <typename TStoreType>
 class TTypedFastSLRSolver {
 private:
@@ -30,7 +32,7 @@ public:
     }
 
     template <typename TFloatType>
-    void Solve(TFloatType& factor, TFloatType& intercept, const double regularizationParameter = 0.1) const {
+    void Solve(TFloatType& factor, TFloatType& intercept, const double regularizationParameter = DefaultRegularizationParameter) const {
         if (!(double) SumGoals) {
             factor = intercept = TFloatType();
             return;
@@ -49,7 +51,7 @@ public:
         intercept = (double) SumGoals / (double) SumWeights - factor * (double) SumFeatures / (double) SumWeights;
     }
 
-    double SumSquaredErrors(const double regularizationParameter = 0.1) const {
+    double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const {
         if (!(double) SumWeights) {
             return 0.;
         }
@@ -97,7 +99,7 @@ public:
     void Add(const double feature, const double goal, const double weight = 1.);
 
     template <typename TFloatType>
-    void Solve(TFloatType& factor, TFloatType& intercept, const double regularizationParameter = 0.1) const {
+    void Solve(TFloatType& factor, TFloatType& intercept, const double regularizationParameter = DefaultRegularizationParameter) const {
         if (!FeaturesDeviation) {
             factor = 0.;
             intercept = GoalsMean;
@@ -108,7 +110,7 @@ public:
         intercept = GoalsMean - factor * FeaturesMean;
     }
 
-    double SumSquaredErrors(const double regularizationParameter = 0.1) const;
+    double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const;
 };
 
 template <typename TSLRSolverType>
@@ -126,7 +128,7 @@ public:
         }
     }
 
-    TLinearModel Solve(const double regularizationParameter = 0.1) const {
+    TLinearModel Solve(const double regularizationParameter = DefaultRegularizationParameter) const {
         const TSLRSolverType* bestSolver = nullptr;
         for (const TSLRSolverType& solver : SLRSolvers) {
             if (!bestSolver || solver.SumSquaredErrors(regularizationParameter) < bestSolver->SumSquaredErrors(regularizationParameter)) {
@@ -143,7 +145,7 @@ public:
         return model;
     }
 
-    double SumSquaredErrors(const double regularizationParameter = 0.1) const {
+    double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const {
         if (SLRSolvers.empty()) {
             return 0.;
         }
