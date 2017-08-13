@@ -322,7 +322,7 @@ int DoResearchBSLRMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_lr", "welford_lr", "precise_welford_lr" };
+    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr" };
     return DoResearchMethods(researchOptions, learningModes);
 }
 
@@ -335,7 +335,7 @@ int DoResearchLRMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr" };
+    const std::vector<std::string> learningModes = { "fast_lr", "welford_lr", "precise_welford_lr" };
     return DoResearchMethods(researchOptions, learningModes);
 }
 
