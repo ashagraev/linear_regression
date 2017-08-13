@@ -218,45 +218,49 @@ int DoCrossValidation(int argc, const char** argv) {
     return 0;
 }
 
-int DoResearchMethods(int argc, const char** argv) {
-    std::string featuresPath;
+struct TResearchOptions {
+    std::string FeaturesPath;
 
-    size_t foldsCount = 5;
-    size_t runsCount = 1;
+    size_t FoldsCount = 5;
+    size_t RunsCount = 1;
 
-    size_t tasksCount = 5;
-    double degradeFactor = 0.2;
+    size_t TasksCount = 5;
+    double DegradeFactor = 0.2;
 
-    {
-        TArgsParser argsParser;
-        argsParser.AddHandler("features", &featuresPath, "features file path").Required();
+    void AddOpts(TArgsParser& argsParser) {
+        argsParser.AddHandler("features", &FeaturesPath, "features file path").Required();
 
-        argsParser.AddHandler("tasks", &tasksCount, "number of research tasks").Optional();
-        argsParser.AddHandler("degrade", &degradeFactor, "task-to-task degrade level").Optional();
+        argsParser.AddHandler("tasks", &TasksCount, "number of research tasks").Optional();
+        argsParser.AddHandler("degrade", &DegradeFactor, "task-to-task degrade level").Optional();
 
-        argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
-        argsParser.AddHandler("runs", &runsCount, "cross-validation runs count").Optional();
-
-        argsParser.DoParse(argc, argv);
+        argsParser.AddHandler("folds", &FoldsCount, "cross-validation folds count").Optional();
+        argsParser.AddHandler("runs", &RunsCount, "cross-validation runs count").Optional();
     }
 
-    TPool pool;
-    pool.ReadFromFeatures(featuresPath);
+    std::vector<std::pair<double, double>> GetInjureFactorsAndOffsets() const {
+        std::vector<std::pair<double, double>> injureFactorsAndOffsets;
 
-    std::vector<std::pair<double, double>> injureFactorsAndOffsets;
-    {
         double injureFactor = 1.;
         double injureOffset = 1.;
 
-        for (size_t taskIdx = 0; taskIdx < tasksCount; ++taskIdx) {
+        for (size_t taskIdx = 0; taskIdx < TasksCount; ++taskIdx) {
             injureFactorsAndOffsets.push_back(std::make_pair(injureFactor, injureOffset));
 
-            injureFactor *= degradeFactor;
-            injureOffset /= degradeFactor;
+            injureFactor *= DegradeFactor;
+            injureOffset /= DegradeFactor;
         }
+        return injureFactorsAndOffsets;
     }
+};
 
-    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr", "precise_welford_lr" };
+int DoResearchMethods(const TResearchOptions& researchOptions,
+                      const std::vector<std::string>& learningModes)
+{
+    TPool pool;
+    pool.ReadFromFeatures(researchOptions.FeaturesPath);
+
+    const std::vector<std::pair<double, double>> injureFactorsAndOffsets = researchOptions.GetInjureFactorsAndOffsets();
+
     std::vector<std::vector<double>> scores(learningModes.size());
     std::vector<double> fullLearnTime(learningModes.size());
 
@@ -270,7 +274,7 @@ int DoResearchMethods(int argc, const char** argv) {
         std::cerr << "injure offset: " << injureOffset << std::endl;
 
         for (size_t methodIdx = 0; methodIdx < learningModes.size(); ++methodIdx) {
-            const TCrossValidationResult cvResult = CrossValidation(injuredPool, foldsCount, runsCount, learningModes[methodIdx], "", false);
+            const TCrossValidationResult cvResult = CrossValidation(injuredPool, researchOptions.FoldsCount, researchOptions.RunsCount, learningModes[methodIdx], "", false);
 
             std::stringstream ss;
             ss << "   ";
@@ -307,6 +311,19 @@ int DoResearchMethods(int argc, const char** argv) {
     }
 
     return 0;
+}
+
+int DoResearchMethods(int argc, const char** argv) {
+    TResearchOptions researchOptions;
+
+    {
+        TArgsParser argsParser;
+        researchOptions.AddOpts(argsParser);
+        argsParser.DoParse(argc, argv);
+    }
+
+    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr", "precise_welford_lr" };
+    return DoResearchMethods(researchOptions, learningModes);
 }
 
 int DoInjurePool(int argc, const char** argv) {
