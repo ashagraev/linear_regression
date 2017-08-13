@@ -313,7 +313,7 @@ int DoResearchMethods(const TResearchOptions& researchOptions,
     return 0;
 }
 
-int DoResearchMethods(int argc, const char** argv) {
+int DoResearchBSLRMethods(int argc, const char** argv) {
     TResearchOptions researchOptions;
 
     {
@@ -322,7 +322,20 @@ int DoResearchMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "fast_lr", "welford_lr", "precise_welford_lr" };
+    const std::vector<std::string> learningModes = { "fast_lr", "welford_lr", "precise_welford_lr" };
+    return DoResearchMethods(researchOptions, learningModes);
+}
+
+int DoResearchLRMethods(int argc, const char** argv) {
+    TResearchOptions researchOptions;
+
+    {
+        TArgsParser argsParser;
+        researchOptions.AddOpts(argsParser);
+        argsParser.DoParse(argc, argv);
+    }
+
+    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr" };
     return DoResearchMethods(researchOptions, learningModes);
 }
 
@@ -380,7 +393,8 @@ int main(int argc, const char** argv) {
     modeChooser.Add("learn", &DoLearn, "learn model from features");
     modeChooser.Add("predict", &DoPredict, "apply learned model to features");
     modeChooser.Add("cv", &DoCrossValidation, "run cross-validation check");
-    modeChooser.Add("research", &DoResearchMethods, "research learning methods on set of injured pools");
+    modeChooser.Add("research-bslr", &DoResearchBSLRMethods, "research simple regression learning methods on set of injured pools");
+    modeChooser.Add("research-lr", &DoResearchLRMethods, "research linear regression learning methods on set of injured pools");
     modeChooser.Add("injure-pool", &DoInjurePool, "create injured pool from source features");
     modeChooser.Add("to-vowpal-wabbit", &ToVowpalWabbit, "create VowpalWabbit-compatible pool");
     modeChooser.Add("to-svm-light", &ToSVMLight, "create SVMLight-compatible pool");
