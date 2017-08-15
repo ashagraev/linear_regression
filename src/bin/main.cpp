@@ -49,7 +49,7 @@ TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
     if (learningMode == "welford_lr") {
         linearModel = Solve<TWelfordLRSolver>(iterator);
     }
-    if (learningMode == "precise_welford_lr") {
+    if (learningMode == "normalized_welford_lr") {
         linearModel = Solve<TNormalizedWelfordLRSolver>(iterator);
     }
     return linearModel;
@@ -67,7 +67,7 @@ int DoLearn(int argc, const char** argv) {
         argsParser.AddHandler("features", &featuresPath, "features file path").Required();
 
         argsParser.AddHandler("model", &modelPath, "resulting model path").Optional();
-        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, precise_welford_lr").Optional();
+        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, normalized_welford_lr").Optional();
 
         argsParser.DoParse(argc, argv);
     }
@@ -200,7 +200,7 @@ int DoCrossValidation(int argc, const char** argv) {
     {
         TArgsParser argsParser;
         argsParser.AddHandler("features", &featuresPath, "features file path").Required();
-        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, precise_welford_lr").Optional();
+        argsParser.AddHandler("method", &learningMode, "learning mode, one from: fast_bslr, kahan_bslr, welford_bslr, fast_lr, welford_lr, normalized_welford_lr").Optional();
 
         argsParser.AddHandler("folds", &foldsCount, "cross-validation folds count").Optional();
         argsParser.AddHandler("runs", &runsCount, "cross-validation runs count").Optional();
@@ -338,7 +338,7 @@ int DoResearchLRMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_lr", "welford_lr", "precise_welford_lr" };
+    const std::vector<std::string> learningModes = { "fast_lr", "welford_lr", "normalized_welford_lr" };
     return DoResearchMethods(researchOptions, learningModes);
 }
 
