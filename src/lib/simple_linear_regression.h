@@ -85,7 +85,7 @@ private:
 };
 
 class TWelfordSLRSolver {
-private:
+protected:
     double FeaturesMean = 0.;
     double FeaturesDeviation = 0.;
 
@@ -111,6 +111,11 @@ public:
     }
 
     double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const;
+};
+
+class TNormalizedWelfordSLRSolver : public TWelfordSLRSolver {
+public:
+    void Add(const double feature, const double goal, const double weight = 1.);
 };
 
 template <typename TSLRSolverType>
@@ -164,3 +169,4 @@ using TKahanSLRSolver = TTypedFastSLRSolver<TKahanAccumulator>;
 using TFastBestSLRSolver = TTypedBestSLRSolver<TFastSLRSolver>;
 using TKahanBestSLRSolver = TTypedBestSLRSolver<TKahanSLRSolver>;
 using TWelfordBestSLRSolver = TTypedBestSLRSolver<TWelfordSLRSolver>;
+using TNormalizedWelfordBestSLRSolver = TTypedBestSLRSolver<TNormalizedWelfordSLRSolver>;

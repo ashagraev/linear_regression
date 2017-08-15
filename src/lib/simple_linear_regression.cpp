@@ -27,3 +27,20 @@ double TWelfordSLRSolver::SumSquaredErrors(const double regularizationParameter)
 
     return factor * factor * FeaturesDeviation - 2 * factor * Covariation + GoalsDeviation;
 }
+
+void TNormalizedWelfordSLRSolver::Add(const double feature, const double goal, const double weight) {
+    SumWeights += weight;
+    if (!SumWeights) {
+        return;
+    }
+
+    const double oldFeaturesMean = FeaturesMean;
+    FeaturesMean += weight * (feature - FeaturesMean) / SumWeights;
+    FeaturesDeviation += weight * ((feature - oldFeaturesMean) * (feature - FeaturesMean) - FeaturesDeviation) / SumWeights;
+
+    const double oldGoalsMean = FeaturesMean;
+    GoalsMean += weight * (goal - GoalsMean) / SumWeights;
+    GoalsDeviation += weight * ((goal - oldGoalsMean) * (goal - GoalsMean) - GoalsDeviation) / SumWeights;
+
+    Covariation += weight * ((goal - oldGoalsMean) * (feature - FeaturesMean) - Covariation) / SumWeights;
+}

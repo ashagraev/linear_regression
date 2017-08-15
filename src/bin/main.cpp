@@ -40,6 +40,9 @@ TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
     if (learningMode == "welford_bslr") {
         linearModel = Solve<TWelfordBestSLRSolver>(iterator);
     }
+    if (learningMode == "normalized_welford_bslr") {
+        linearModel = Solve<TWelfordBestSLRSolver>(iterator);
+    }
     if (learningMode == "fast_lr") {
         linearModel = Solve<TFastLRSolver>(iterator);
     }
@@ -279,7 +282,7 @@ int DoResearchMethods(const TResearchOptions& researchOptions,
             std::stringstream ss;
             ss << "   ";
             ss << learningModes[methodIdx];
-            while (ss.str().size() < 25) {
+            while (ss.str().size() < 50) {
                 ss << " ";
             }
 
@@ -300,7 +303,7 @@ int DoResearchMethods(const TResearchOptions& researchOptions,
         std::stringstream ss;
         ss << "   ";
         ss << learningModes[methodIdx];
-        while (ss.str().size() < 25) {
+        while (ss.str().size() < 50) {
             ss << " ";
         }
         ss.precision(5);
@@ -322,7 +325,7 @@ int DoResearchBSLRMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr" };
+    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "normalized_welford_bslr" };
     return DoResearchMethods(researchOptions, learningModes);
 }
 
