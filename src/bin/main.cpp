@@ -212,7 +212,7 @@ struct TResearchOptions {
     size_t RunsCount = 1;
 
     size_t TasksCount = 5;
-    double DegradeFactor = 0.2;
+    double DegradeFactor = 0.1;
 
     void AddOpts(TArgsParser& argsParser) {
         argsParser.AddHandler("features", &FeaturesPath, "features file path").Required();
