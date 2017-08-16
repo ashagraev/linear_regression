@@ -12,22 +12,6 @@
 #include <unordered_set>
 #include <time.h>
 
-int PrintHelp() {
-    std::cerr << "modes:" << std::endl;
-    std::cerr << "    linear_regression learn" << std::endl;
-    std::cerr << "    linear_regression predict" << std::endl;
-    std::cerr << "    linear_regression cv" << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "    linear_regression injure-pool" << std::endl;
-    std::cerr << "    linear_regression to-vowpal-wabbit" << std::endl;
-    std::cerr << "    linear_regression to-svm-light" << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "    linear_regression test" << std::endl;
-    std::cerr << std::endl;
-
-    return 1;
-}
-
 template <typename TIteratorType>
 TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
     TLinearModel linearModel;
