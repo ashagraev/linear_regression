@@ -28,10 +28,13 @@ struct TLinearModel {
 };
 
 template <typename TSolver, typename TIterator>
-TLinearModel Solve(TIterator iterator) {
+TLinearModel Solve(TIterator iterator, double* sumSquaredErrors = nullptr) {
     TSolver solver;
     for (; iterator.IsValid(); ++iterator) {
         solver.Add(iterator->Features, iterator->Goal, iterator->Weight);
+    }
+    if (sumSquaredErrors) {
+        *sumSquaredErrors = solver.SumSquaredErrors();
     }
     return solver.Solve();
 }
