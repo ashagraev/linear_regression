@@ -12,7 +12,7 @@ public:
     {
     }
 
-    TKahanAccumulator& operator += (const double value) {
+    TKahanAccumulator& operator+=(const double value) {
         const double y = value - Addition;
         const double t = Sum + y;
         Addition = (t - Sum) - y;
@@ -20,8 +20,8 @@ public:
         return *this;
     }
 
-    TKahanAccumulator& operator += (const TKahanAccumulator& other) {
-        return *this += (double) other;
+    TKahanAccumulator& operator+=(const TKahanAccumulator& other) {
+        return *this += (double)other;
     }
 
     operator double() const {
