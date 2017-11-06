@@ -143,7 +143,7 @@ namespace {
 
         size_t errorsCount = 0;
 
-        auto checkRMSE = [](const double rmse, const double targetRMSE, const std::string& title) {
+        auto checkRMSE = [&errorsCount](const double rmse, const double targetRMSE, const std::string& title) {
             if (!DoublesAreQuiteSimilar(rmse, targetRMSE)) {
                 std::cerr << title << std::endl;
                 ++errorsCount;
