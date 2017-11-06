@@ -164,6 +164,14 @@ void TNormalizedWelfordLRSolver::Add(const std::vector<double>& features, const 
     GoalsDeviation += weight * ((goal - oldGoalsMean) * (goal - GoalsMean) - GoalsDeviation) / SumWeights;
 }
 
+double TNormalizedWelfordLRSolver::MeanSquaredError() const {
+    return TWelfordLRSolver::SumSquaredErrors();
+}
+
+double TNormalizedWelfordLRSolver::SumSquaredErrors() const {
+    return MeanSquaredError() * SumWeights;
+}
+
 namespace NLinearRegressionInner {
     // LDL matrix decomposition, see http://en.wikipedia.org/wiki/Cholesky_decomposition#LDL_decomposition_2
     bool LDLDecomposition(const std::vector<double>& linearizedOLSMatrix,

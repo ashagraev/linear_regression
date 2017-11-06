@@ -47,6 +47,8 @@ protected:
 class TNormalizedWelfordLRSolver : public TWelfordLRSolver {
 public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
+    double MeanSquaredError() const;
+    double SumSquaredErrors() const;
 
     static const std::string Name() {
         return "normalized Welford LR";
