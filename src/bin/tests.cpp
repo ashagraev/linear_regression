@@ -124,7 +124,7 @@ namespace {
 
     template <typename TSLRSolver>
     size_t CheckModelPrecision(const TPool& pool) {
-        TPool::TSimpleIterator learnIterator = pool.Iterator();       
+        TPool::TSimpleIterator learnIterator = pool.Iterator();
         const TLinearModel model = Solve<TSLRSolver>(learnIterator);
         const double rmse = TRegressionMetricsCalculator::Build(learnIterator, model).RMSE();
 
@@ -156,7 +156,7 @@ namespace {
 
     template <typename TSLRSolver>
     size_t CheckModelCoefficients(const TPool& pool, const std::vector<double>& targetCoefficients) {
-        TPool::TSimpleIterator learnIterator = pool.Iterator();       
+        TPool::TSimpleIterator learnIterator = pool.Iterator();
         const TLinearModel model = Solve<TSLRSolver>(learnIterator);
 
         size_t errorsCount = 0;
@@ -170,12 +170,12 @@ namespace {
                 std::cerr << "coefficients error for " << TSLRSolver::Name() << ": got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
                 ++errorsCount;
             }
-        }    
+        }
 
         return errorsCount;
     }
 
-    size_t DoTestLRModels(const TPool& pool) {      
+    size_t DoTestLRModels(const TPool& pool) {
         std::mt19937 mersenne;
         std::normal_distribution<double> randGen;
 
@@ -203,14 +203,14 @@ namespace {
 
             errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(nonZeroMSEPool);
             errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(nonZeroMSEPool);
-    
+
             errorsCount += CheckModelCoefficients<TFastLRSolver>(nonZeroMSEPool, SampleLinearCoefficients());
             errorsCount += CheckModelCoefficients<TWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients());
             errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients());
         }
 
         std::cout << "linear regression errors: " << errorsCount << std::endl;
-        
+
         return errorsCount;
     }
 }
