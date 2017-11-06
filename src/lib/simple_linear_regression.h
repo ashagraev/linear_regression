@@ -168,7 +168,7 @@ public:
         }
 
         double sse = SLRSolvers.begin()->SumSquaredErrors(regularizationParameter);
-        for (const TWelfordSLRSolver& solver : SLRSolvers) {
+        for (const TSLRSolverType& solver : SLRSolvers) {
             sse = std::min(solver.SumSquaredErrors(regularizationParameter), sse);
         }
         return sse;
