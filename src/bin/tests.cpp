@@ -131,6 +131,7 @@ namespace {
 
         TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
         TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
+        TLinearModel nwlrModel = Solve<TNormalizedWelfordLRSolver>(learnIterator);
 
         const double fbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, fbslrModel).RMSE();
         const double kbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, kbslrModel).RMSE();
@@ -138,29 +139,23 @@ namespace {
 
         const double flrRMSE = TRegressionMetricsCalculator::Build(learnIterator, flrModel).RMSE();
         const double wlrRMSE = TRegressionMetricsCalculator::Build(learnIterator, wlrModel).RMSE();
+        const double nwlrRMSE = TRegressionMetricsCalculator::Build(learnIterator, nwlrModel).RMSE();
 
         size_t errorsCount = 0;
 
-        if (!DoublesAreQuiteSimilar(fbslrRMSE, kbslrRMSE)) {
-            std::cerr << "fast & kahan bslr models are different" << std::endl;
-            ++errorsCount;
-        }
-        if (!DoublesAreQuiteSimilar(fbslrRMSE, wbslrRMSE)) {
-            std::cerr << "fast & welford bslr models are different" << std::endl;
-            ++errorsCount;
-        }
-        if (!DoublesAreQuiteSimilar(flrRMSE, wlrRMSE)) {
-            std::cerr << "fast & welford lr models are different" << std::endl;
-            ++errorsCount;
-        }
-        if (!DoublesAreQuiteSimilar(flrRMSE, 0)) {
-            std::cerr << "fast lr model is not enough precise" << std::endl;
-            ++errorsCount;
-        }
-        if (!DoublesAreQuiteSimilar(wlrRMSE, 0)) {
-            std::cerr << "welford lr model is not enough precise" << std::endl;
-            ++errorsCount;
-        }
+        auto checkRMSE = [](const double rmse, const double targetRMSE, const std::string& title) {
+            if (!DoublesAreQuiteSimilar(rmse, targetRMSE)) {
+                std::cerr << title << std::endl;
+                ++errorsCount;
+            }
+        };
+
+        checkRMSE(fbslrRMSE, kbslrRMSE, "fast & kahan bslr models are different");
+        checkRMSE(fbslrRMSE, wbslrRMSE, "fast & welford bslr models are different");
+        checkRMSE(flrRMSE, wlrRMSE, "fast & welford lr models are different");
+        checkRMSE(flrRMSE, 0, "fast lr model is not enough precise");
+        checkRMSE(wlrRMSE, 0, "welformd lr model is not enough precise");
+        checkRMSE(nwlrRMSE, 0, "normalized welformd lr model is not enough precise");
 
         const size_t featuresCount = pool.FeaturesCount();
         const std::vector<double> actualCoefficients = SampleLinearCoefficients();
@@ -175,14 +170,16 @@ namespace {
                     ++errorsCount;
                 }
             }    
-        }
+        };
 
         testModel(flrModel, "fast lr solver");
         testModel(wlrModel, "welford lr solver");
+        testModel(nwlrModel, "normalized welford lr solver");
 
         std::cout << "lr model errors: " << errorsCount << std::endl;
         std::cout << "    wbslr RMSE: " << wbslrRMSE << std::endl;
-        std::cout << "    wlr RMSE: " << wlrRMSE << std::endl;
+        std::cout << "    wlr RMSE:   " << wlrRMSE << std::endl;
+        std::cout << "    nwlr RMSE:  " << nwlrRMSE << std::endl;
 
         return errorsCount;
     }
