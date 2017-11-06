@@ -140,16 +140,31 @@ namespace {
         return errorsCount;
     }
 
+    template <typename TSLRSolver>
+    size_t CheckModelSSEPrediction(const TPool& pool, std::map<std::string, size_t>& testCounters) {
+        TPool::TSimpleIterator learnIterator = pool.Iterator();
+        double ssePrediction = 1e25;
+        const TLinearModel model = Solve<TSLRSolver>(learnIterator, &ssePrediction);
+        const double rmse = TRegressionMetricsCalculator::Build(learnIterator, model).RMSE();
+        const double rmsePrediction = sqrt(ssePrediction / pool.size());
+
+        size_t errorsCount = 0;
+        if (!DoublesAreQuiteSimilar(rmse, rmsePrediction)) {
+            std::cerr << TSLRSolver::Name() << " got wrong rmse prediction" << std::endl;
+            ++errorsCount;
+        }
+
+        ++testCounters[TSLRSolver::Name()];
+
+        return errorsCount;
+    }
+
     template <typename TFirstSLRSolver, typename TSecondSRLSolver>
     size_t CheckIfModelsAreEqual(const TPool& pool, std::map<std::string, size_t>& testCounters) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
 
-        double firstSumSquaredErrorsPrediction, secondSumSquaredErrorsPrediction;
-        const TLinearModel firstModel = Solve<TFirstSLRSolver>(learnIterator, &firstSumSquaredErrorsPrediction);
-        const TLinearModel secondModel = Solve<TSecondSRLSolver>(learnIterator, &secondSumSquaredErrorsPrediction);
-
-        const double firstRMSEPrediction = sqrt(firstSumSquaredErrorsPrediction / pool.size());
-        const double secondRMSEPrediction = sqrt(secondSumSquaredErrorsPrediction / pool.size());
+        const TLinearModel firstModel = Solve<TFirstSLRSolver>(learnIterator);
+        const TLinearModel secondModel = Solve<TSecondSRLSolver>(learnIterator);
 
         const double firstRMSE = TRegressionMetricsCalculator::Build(learnIterator, firstModel).RMSE();
         const double secondRMSE = TRegressionMetricsCalculator::Build(learnIterator, secondModel).RMSE();
@@ -159,17 +174,9 @@ namespace {
             std::cerr << TFirstSLRSolver::Name() << " & " << TSecondSRLSolver::Name() << " models are different" << std::endl;
             ++errorsCount;
         }
-        if (!DoublesAreQuiteSimilar(firstRMSE, firstRMSEPrediction)) {
-            std::cerr << TFirstSLRSolver::Name() << " got wrong rmse prediction" << std::endl;
-            ++errorsCount;
-        }
-        if (!DoublesAreQuiteSimilar(secondRMSE, secondRMSEPrediction)) {
-            std::cerr << TSecondSRLSolver::Name() << " got wrong rmse prediction" << std::endl;
-            ++errorsCount;
-        }
 
-        testCounters[TFirstSLRSolver::Name()] += 2;
-        testCounters[TSecondSRLSolver::Name()] += 2;
+        ++testCounters[TFirstSLRSolver::Name()];
+        ++testCounters[TSecondSRLSolver::Name()];
 
         return errorsCount;
     }
@@ -220,6 +227,14 @@ namespace {
         errorsCount += CheckModelPrecision<TWelfordLRSolver>(pool, testCounters);
         errorsCount += CheckModelPrecision<TNormalizedWelfordLRSolver>(pool, testCounters);
 
+        errorsCount += CheckModelSSEPrediction<TFastBestSLRSolver>(pool, testCounters);
+        errorsCount += CheckModelSSEPrediction<TKahanBestSLRSolver>(pool, testCounters);
+        errorsCount += CheckModelSSEPrediction<TWelfordBestSLRSolver>(pool, testCounters);
+        errorsCount += CheckModelSSEPrediction<TNormalizedWelfordBestSLRSolver>(pool, testCounters);
+        errorsCount += CheckModelSSEPrediction<TFastLRSolver>(pool, testCounters);
+        errorsCount += CheckModelSSEPrediction<TWelfordLRSolver>(pool, testCounters);
+        errorsCount += CheckModelSSEPrediction<TNormalizedWelfordLRSolver>(pool, testCounters);
+
         for (const TPool& nonZeroMSEPool : nonZeroMSEPools) {
             errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(nonZeroMSEPool, testCounters);
             errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
@@ -231,6 +246,14 @@ namespace {
             errorsCount += CheckModelCoefficients<TFastLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
             errorsCount += CheckModelCoefficients<TWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
             errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
+
+            errorsCount += CheckModelSSEPrediction<TFastBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TKahanBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TNormalizedWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TFastLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TWelfordLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TNormalizedWelfordLRSolver>(nonZeroMSEPool, testCounters);
         }
 
         std::cout << "linear regression errors: " << errorsCount << std::endl;
