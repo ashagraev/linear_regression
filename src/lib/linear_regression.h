@@ -20,7 +20,7 @@ public:
 };
 
 class TWelfordLRSolver {
-private:
+protected:
     double GoalsMean = 0.;
     double GoalsDeviation = 0.;
 
@@ -40,31 +40,11 @@ public:
     static const std::string Name() {
         return "welford LR";
     }
-private:
+protected:
     bool PrepareMeans(const std::vector<double>& features, const double weight);
 };
 
-class TNormalizedWelfordLRSolver {
-private:
-    double GoalsMean = 0.;
-    double GoalsDeviation = 0.;
-
-    std::vector<double> FeatureMeans;
-    std::vector<double> FeatureWeightedDeviationFromLastMean;
-    std::vector<double> FeatureDeviationFromNewMean;
-    std::vector<double> LinearizedOLSMatrix;
-
-    std::vector<double> OLSVector;
-
-    TKahanAccumulator SumWeights;
+class TNormalizedWelfordLRSolver : public TWelfordLRSolver {
 public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
-    TLinearModel Solve() const;
-    double MeanSquaredError() const;
-
-    static const std::string Name() {
-        return "normalized welford LR";
-    }
-private:
-    bool PrepareMeans(const std::vector<double>& features, const double weight);
 };

@@ -131,35 +131,6 @@ double TWelfordLRSolver::SumSquaredErrors() const {
     return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
-bool TNormalizedWelfordLRSolver::PrepareMeans(const std::vector<double>& features, const double weight) {
-    const size_t featuresCount = features.size();
-
-    if (FeatureMeans.empty()) {
-        FeatureMeans.resize(featuresCount);
-        FeatureWeightedDeviationFromLastMean.resize(featuresCount);
-        FeatureDeviationFromNewMean.resize(featuresCount);
-
-        LinearizedOLSMatrix.resize(featuresCount * (featuresCount + 1) / 2);
-        OLSVector.resize(featuresCount);
-    }
-
-    SumWeights += weight;
-    if (!SumWeights) {
-        return false;
-    }
-
-    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
-        const double feature = features[featureNumber];
-        double& featureMean = FeatureMeans[featureNumber];
-
-        FeatureWeightedDeviationFromLastMean[featureNumber] = feature - featureMean;
-        featureMean += weight * (feature - featureMean) / SumWeights;
-        FeatureDeviationFromNewMean[featureNumber] = feature - featureMean;
-    }
-
-    return true;
-}
-
 void TNormalizedWelfordLRSolver::Add(const std::vector<double>& features, const double goal, const double weight) {
     if (!PrepareMeans(features, weight)) {
         return;
@@ -191,24 +162,6 @@ void TNormalizedWelfordLRSolver::Add(const std::vector<double>& features, const 
     const double oldGoalsMean = GoalsMean;
     GoalsMean += weight * (goal - GoalsMean) / SumWeights;
     GoalsDeviation += weight * ((goal - oldGoalsMean) * (goal - GoalsMean) - GoalsDeviation) / SumWeights;
-}
-
-TLinearModel TNormalizedWelfordLRSolver::Solve() const {
-    TLinearModel model;
-    model.Coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
-    model.Intercept = GoalsMean;
-
-    const size_t featuresCount = OLSVector.size();
-    for (size_t featureNumber = 0; featureNumber < featuresCount; ++featureNumber) {
-        model.Intercept -= FeatureMeans[featureNumber] * model.Coefficients[featureNumber];
-    }
-
-    return model;
-}
-
-double TNormalizedWelfordLRSolver::MeanSquaredError() const {
-    const std::vector<double> coefficients = NLinearRegressionInner::Solve(LinearizedOLSMatrix, OLSVector);
-    return NLinearRegressionInner::SumSquaredErrors(LinearizedOLSMatrix, OLSVector, coefficients, GoalsDeviation);
 }
 
 namespace NLinearRegressionInner {
