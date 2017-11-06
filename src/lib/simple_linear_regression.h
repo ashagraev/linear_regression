@@ -69,6 +69,10 @@ public:
 
         return std::max(0., sumSquaredErrors);
     }
+
+    static const std::string Name() {
+        return "fast";
+    }
 private:
     void SetupSolutionFactors(double& productsDeviation, double& featuresDeviation) const {
         if (!(double) SumWeights) {
@@ -111,11 +115,19 @@ public:
     }
 
     double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const;
+
+    static const std::string Name() {
+        return "welford";
+    }
 };
 
 class TNormalizedWelfordSLRSolver : public TWelfordSLRSolver {
 public:
     void Add(const double feature, const double goal, const double weight = 1.);
+
+    const std::string Name() const {
+        return "normalized welford";
+    }
 };
 
 template <typename TSLRSolverType>
@@ -160,6 +172,10 @@ public:
             sse = std::min(solver.SumSquaredErrors(regularizationParameter), sse);
         }
         return sse;
+    }
+
+    static const std::string Name() {
+        return TSLRSolverType::Name() + " bslr";
     }
 };
 

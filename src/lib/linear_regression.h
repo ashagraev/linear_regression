@@ -13,6 +13,10 @@ public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
     double SumSquaredErrors() const;
+
+    static const std::string Name() {
+        return "fast LR";
+    }
 };
 
 class TWelfordLRSolver {
@@ -32,6 +36,10 @@ public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
     double SumSquaredErrors() const;
+
+    static const std::string Name() {
+        return "welford LR";
+    }
 private:
     bool PrepareMeans(const std::vector<double>& features, const double weight);
 };
@@ -53,6 +61,10 @@ public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
     double MeanSquaredError() const;
+
+    static const std::string Name() {
+        return "normalized welford LR";
+    }
 private:
     bool PrepareMeans(const std::vector<double>& features, const double weight);
 };
