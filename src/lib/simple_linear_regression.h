@@ -124,6 +124,8 @@ public:
 class TNormalizedWelfordSLRSolver : public TWelfordSLRSolver {
 public:
     void Add(const double feature, const double goal, const double weight = 1.);
+    double MeanSquaredError(const double regularizationParameter = DefaultRegularizationParameter) const;
+    double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const;
 
     static const std::string Name() {
         return "normalized Welford";

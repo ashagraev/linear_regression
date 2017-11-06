@@ -44,3 +44,11 @@ void TNormalizedWelfordSLRSolver::Add(const double feature, const double goal, c
 
     Covariation += weight * ((goal - oldGoalsMean) * (feature - FeaturesMean) - Covariation) / SumWeights;
 }
+
+double TNormalizedWelfordSLRSolver::MeanSquaredError(const double regularizationParameter) const {
+    return TWelfordSLRSolver::SumSquaredErrors(regularizationParameter);
+}
+
+double TNormalizedWelfordSLRSolver::SumSquaredErrors(const double regularizationParameter) const {
+    return MeanSquaredError(regularizationParameter) * SumWeights;
+}
