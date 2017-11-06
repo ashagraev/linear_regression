@@ -165,24 +165,20 @@ namespace {
         const size_t featuresCount = pool.FeaturesCount();
         const std::vector<double> actualCoefficients = SampleLinearCoefficients();
 
-        for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
-            const double present = flrModel.Coefficients[fIdx];
-            const double actual = actualCoefficients[fIdx];
-
-            if (!DoublesAreQuiteSimilar(present, actual)) {
-                std::cerr << "coefficients error for fast lr solver: got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
-                ++errorsCount;
-            }
+        auto testModel = [&](const TLinearModel& model, const std::string& title) {
+            for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
+                const double present = model.Coefficients[fIdx];
+                const double actual = actualCoefficients[fIdx];
+    
+                if (!DoublesAreQuiteSimilar(present, actual)) {
+                    std::cerr << "coefficients error for " << title << ": got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
+                    ++errorsCount;
+                }
+            }    
         }
-        for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
-            const double present = wlrModel.Coefficients[fIdx];
-            const double actual = actualCoefficients[fIdx];
 
-            if (!DoublesAreQuiteSimilar(present, actual)) {
-                std::cerr << "coefficients error for welford lr solver: got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
-                ++errorsCount;
-            }
-        }
+        testModel(flrModel, "fast lr solver");
+        testModel(wlrModel, "welford lr solver");
 
         std::cout << "lr model errors: " << errorsCount << std::endl;
         std::cout << "    wbslr RMSE: " << wbslrRMSE << std::endl;
