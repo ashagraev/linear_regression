@@ -199,6 +199,7 @@ namespace {
         for (const TPool& nonZeroMSEPool : nonZeroMSEPools) {
             errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(nonZeroMSEPool);
             errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(nonZeroMSEPool);
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TNormalizedWelfordBestSLRSolver>(nonZeroMSEPool);
 
             errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(nonZeroMSEPool);
             errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(nonZeroMSEPool);

@@ -125,7 +125,7 @@ class TNormalizedWelfordSLRSolver : public TWelfordSLRSolver {
 public:
     void Add(const double feature, const double goal, const double weight = 1.);
 
-    const std::string Name() const {
+    static const std::string Name() {
         return "normalized welford";
     }
 };
