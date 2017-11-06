@@ -144,8 +144,12 @@ namespace {
     size_t CheckIfModelsAreEqual(const TPool& pool, std::map<std::string, size_t>& testCounters) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
 
-        const TLinearModel firstModel = Solve<TFirstSLRSolver>(learnIterator);
-        const TLinearModel secondModel = Solve<TSecondSRLSolver>(learnIterator);
+        double firstSumSquaredErrorsPrediction, secondSumSquaredErrorsPrediction;
+        const TLinearModel firstModel = Solve<TFirstSLRSolver>(learnIterator, &firstSumSquaredErrorsPrediction);
+        const TLinearModel secondModel = Solve<TSecondSRLSolver>(learnIterator, &secondSumSquaredErrorsPrediction);
+
+        const double firstRMSEPrediction = sqrt(firstSumSquaredErrorsPrediction / pool.size());
+        const double secondRMSEPrediction = sqrt(secondSumSquaredErrorsPrediction / pool.size());
 
         const double firstRMSE = TRegressionMetricsCalculator::Build(learnIterator, firstModel).RMSE();
         const double secondRMSE = TRegressionMetricsCalculator::Build(learnIterator, secondModel).RMSE();
@@ -155,8 +159,18 @@ namespace {
             std::cerr << TFirstSLRSolver::Name() << " & " << TSecondSRLSolver::Name() << " models are different" << std::endl;
             ++errorsCount;
         }
-        ++testCounters[TFirstSLRSolver::Name()];
-        ++testCounters[TSecondSRLSolver::Name()];
+        if (!DoublesAreQuiteSimilar(firstRMSE, firstRMSEPrediction)) {
+            std::cerr << TFirstSLRSolver::Name() << " got wrong rmse prediction" << std::endl;
+            ++errorsCount;
+        }
+        if (!DoublesAreQuiteSimilar(secondRMSE, secondRMSEPrediction)) {
+            std::cerr << TSecondSRLSolver::Name() << " got wrong rmse prediction" << std::endl;
+            ++errorsCount;
+        }
+
+        testCounters[TFirstSLRSolver::Name()] += 2;
+        testCounters[TSecondSRLSolver::Name()] += 2;
+
         return errorsCount;
     }
 
