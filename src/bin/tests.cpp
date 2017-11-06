@@ -208,15 +208,15 @@ namespace {
         std::mt19937 mersenne;
         std::normal_distribution<double> randGen;
 
-        std::vector<TPool> nonZeroMSEPools;
-        nonZeroMSEPools.push_back(pool);
+        std::vector<TPool> researchPools;
+        researchPools.push_back(pool);
         const size_t nonZeroMSEPoolsCount = 5;
         for (size_t nonZeroPoolIdx = 0; nonZeroPoolIdx < nonZeroMSEPoolsCount; ++nonZeroPoolIdx) {
             TPool nonZeroMSEPool(pool);
             for (TInstance& instance : nonZeroMSEPool) {
                 instance.Goal += randGen(mersenne) / 10;
             }
-            nonZeroMSEPools.push_back(nonZeroMSEPool);
+            researchPools.push_back(nonZeroMSEPool);
         }
 
         size_t errorsCount = 0;
@@ -227,33 +227,25 @@ namespace {
         errorsCount += CheckModelPrecision<TWelfordLRSolver>(pool, testCounters);
         errorsCount += CheckModelPrecision<TNormalizedWelfordLRSolver>(pool, testCounters);
 
-        errorsCount += CheckModelSSEPrediction<TFastBestSLRSolver>(pool, testCounters);
-        errorsCount += CheckModelSSEPrediction<TKahanBestSLRSolver>(pool, testCounters);
-        errorsCount += CheckModelSSEPrediction<TWelfordBestSLRSolver>(pool, testCounters);
-        errorsCount += CheckModelSSEPrediction<TNormalizedWelfordBestSLRSolver>(pool, testCounters);
-        errorsCount += CheckModelSSEPrediction<TFastLRSolver>(pool, testCounters);
-        errorsCount += CheckModelSSEPrediction<TWelfordLRSolver>(pool, testCounters);
-        errorsCount += CheckModelSSEPrediction<TNormalizedWelfordLRSolver>(pool, testCounters);
+        for (const TPool& researchPool : researchPools) {
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(researchPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(researchPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TNormalizedWelfordBestSLRSolver>(researchPool, testCounters);
 
-        for (const TPool& nonZeroMSEPool : nonZeroMSEPools) {
-            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TNormalizedWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(researchPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(researchPool, testCounters);
 
-            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelCoefficients<TFastLRSolver>(researchPool, SampleLinearCoefficients(), testCounters);
+            errorsCount += CheckModelCoefficients<TWelfordLRSolver>(researchPool, SampleLinearCoefficients(), testCounters);
+            errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(researchPool, SampleLinearCoefficients(), testCounters);
 
-            errorsCount += CheckModelCoefficients<TFastLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
-            errorsCount += CheckModelCoefficients<TWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
-            errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
-
-            errorsCount += CheckModelSSEPrediction<TFastBestSLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckModelSSEPrediction<TKahanBestSLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckModelSSEPrediction<TWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckModelSSEPrediction<TNormalizedWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckModelSSEPrediction<TFastLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckModelSSEPrediction<TWelfordLRSolver>(nonZeroMSEPool, testCounters);
-            errorsCount += CheckModelSSEPrediction<TNormalizedWelfordLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TFastBestSLRSolver>(researchPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TKahanBestSLRSolver>(researchPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TWelfordBestSLRSolver>(researchPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TNormalizedWelfordBestSLRSolver>(researchPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TFastLRSolver>(researchPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TWelfordLRSolver>(researchPool, testCounters);
+            errorsCount += CheckModelSSEPrediction<TNormalizedWelfordLRSolver>(researchPool, testCounters);
         }
 
         std::cout << "linear regression errors: " << errorsCount << std::endl;
