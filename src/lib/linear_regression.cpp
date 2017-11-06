@@ -236,8 +236,7 @@ namespace NLinearRegressionInner {
     }
 
     std::vector<double> SolveLower(const std::vector<std::vector<double>>& decompositionMatrix,
-                              const std::vector<double>& decompositionTrace,
-                              const std::vector<double>& olsVector)
+                                   const std::vector<double>& decompositionTrace,
                                    const std::vector<double>& olsVector)
     {
         const size_t featuresCount = olsVector.size();
@@ -261,7 +260,6 @@ namespace NLinearRegressionInner {
     }
 
     std::vector<double> SolveUpper(const std::vector<std::vector<double>>& decompositionMatrix,
-                              const std::vector<double>& lowerSolution)
                                    const std::vector<double>& lowerSolution)
     {
         const size_t featuresCount = lowerSolution.size();
