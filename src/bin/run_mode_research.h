@@ -74,7 +74,8 @@ int DoResearchMethods(const TResearchOptions& researchOptions,
 
             ss.precision(5);
 
-            ss << "time: " << cvResult.LearningTimeInSeconds << "    " << "R^2: " << cvResult.MeanDeterminationCoefficient;
+            ss << "time: " << cvResult.LearningTimeInSeconds << "    "
+               << "R^2: " << cvResult.MeanDeterminationCoefficient;
 
             std::cerr << ss.str() << std::endl;
 
@@ -111,7 +112,7 @@ int DoResearchBSLRMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_bslr", "kahan_bslr", "welford_bslr", "normalized_welford_bslr" };
+    const std::vector<std::string> learningModes = {"fast_bslr", "kahan_bslr", "welford_bslr", "normalized_welford_bslr"};
     return DoResearchMethods(researchOptions, learningModes);
 }
 
@@ -124,6 +125,6 @@ int DoResearchLRMethods(int argc, const char** argv) {
         argsParser.DoParse(argc, argv);
     }
 
-    const std::vector<std::string> learningModes = { "fast_lr", "welford_lr", "normalized_welford_lr" };
+    const std::vector<std::string> learningModes = {"fast_lr", "welford_lr", "normalized_welford_lr"};
     return DoResearchMethods(researchOptions, learningModes);
 }

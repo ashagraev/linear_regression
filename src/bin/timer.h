@@ -11,10 +11,11 @@ private:
     TTimeType Start;
 
     std::string Title;
+
 public:
     TTimer(const std::string& title = std::string())
         : Start(TClockType::now())
-        , Title(title)
+        , Title(title) 
     {
     }
 
@@ -27,6 +28,6 @@ public:
     double GetSecondsPassed() const {
         TTimeType now = TClockType::now();
         std::chrono::microseconds diff = std::chrono::duration_cast<std::chrono::microseconds>(now - Start);
-        return (double) diff.count() / 1000000;
+        return (double)diff.count() / 1000000;
     }
 };

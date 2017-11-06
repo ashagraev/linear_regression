@@ -18,6 +18,7 @@ private:
     TStoreType SumProducts = TStoreType();
 
     TStoreType SumWeights = TStoreType();
+
 public:
     void Add(const double feature, const double goal, const double weight = 1.) {
         SumFeatures += feature * weight;
@@ -33,7 +34,7 @@ public:
 
     template <typename TFloatType>
     void Solve(TFloatType& factor, TFloatType& intercept, const double regularizationParameter = DefaultRegularizationParameter) const {
-        if (!(double) SumGoals) {
+        if (!(double)SumGoals) {
             factor = intercept = TFloatType();
             return;
         }
@@ -43,20 +44,20 @@ public:
 
         if (!featuresDeviation) {
             factor = TFloatType();
-            intercept = (double) SumGoals / (double) SumWeights;
+            intercept = (double)SumGoals / (double)SumWeights;
             return;
         }
 
         factor = productsDeviation / (featuresDeviation + regularizationParameter);
-        intercept = (double) SumGoals / (double) SumWeights - factor * (double) SumFeatures / (double) SumWeights;
+        intercept = (double)SumGoals / (double)SumWeights - factor * (double)SumFeatures / (double)SumWeights;
     }
 
     double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const {
-        if (!(double) SumWeights) {
+        if (!(double)SumWeights) {
             return 0.;
         }
 
-        const double sumGoalSquaredDeviations = (double) SumSquaredGoals - (double) SumGoals / (double) SumWeights * (double) SumGoals;
+        const double sumGoalSquaredDeviations = (double)SumSquaredGoals - (double)SumGoals / (double)SumWeights * (double)SumGoals;
 
         double productsDeviation, featuresDeviation;
         SetupSolutionFactors(productsDeviation, featuresDeviation);
@@ -73,18 +74,19 @@ public:
     static const std::string Name() {
         return "fast";
     }
+
 private:
     void SetupSolutionFactors(double& productsDeviation, double& featuresDeviation) const {
-        if (!(double) SumWeights) {
+        if (!(double)SumWeights) {
             productsDeviation = featuresDeviation = 0.;
             return;
         }
 
-        featuresDeviation = (double) SumSquaredFeatures - (double) SumFeatures / (double) SumWeights * (double) SumFeatures;
+        featuresDeviation = (double)SumSquaredFeatures - (double)SumFeatures / (double)SumWeights * (double)SumFeatures;
         if (!featuresDeviation) {
             return;
         }
-        productsDeviation = (double)  SumProducts - (double) SumFeatures / (double) SumWeights * (double) SumGoals;
+        productsDeviation = (double)SumProducts - (double)SumFeatures / (double)SumWeights * (double)SumGoals;
     }
 };
 
@@ -99,6 +101,7 @@ protected:
     TKahanAccumulator SumWeights;
 
     double Covariation = 0.;
+
 public:
     void Add(const double feature, const double goal, const double weight = 1.);
 
@@ -121,7 +124,7 @@ public:
     }
 };
 
-class TNormalizedWelfordSLRSolver : public TWelfordSLRSolver {
+class TNormalizedWelfordSLRSolver: public TWelfordSLRSolver {
 public:
     void Add(const double feature, const double goal, const double weight = 1.);
     double MeanSquaredError(const double regularizationParameter = DefaultRegularizationParameter) const;
@@ -136,6 +139,7 @@ template <typename TSLRSolverType>
 class TTypedBestSLRSolver {
 private:
     std::vector<TSLRSolverType> SLRSolvers;
+
 public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.) {
         if (SLRSolvers.empty()) {

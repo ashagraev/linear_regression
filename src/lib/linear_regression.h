@@ -9,6 +9,7 @@ private:
 
     std::vector<double> LinearizedOLSMatrix;
     std::vector<double> OLSVector;
+
 public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
@@ -32,6 +33,7 @@ protected:
     std::vector<double> OLSVector;
 
     TKahanAccumulator SumWeights;
+
 public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     TLinearModel Solve() const;
@@ -40,11 +42,12 @@ public:
     static const std::string Name() {
         return "Welford LR";
     }
+
 protected:
     bool PrepareMeans(const std::vector<double>& features, const double weight);
 };
 
-class TNormalizedWelfordLRSolver : public TWelfordLRSolver {
+class TNormalizedWelfordLRSolver: public TWelfordLRSolver {
 public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
     double MeanSquaredError() const;

@@ -27,10 +27,10 @@ int DoPredict(int argc, const char** argv) {
 
     for (const TInstance& instance : pool) {
         std::cout << instance.QueryId << "\t"
-             << instance.Goal << "\t"
-             << instance.Url << "\t"
-             << instance.Weight << "\t"
-             << linearModel.Prediction(instance.Features) << "\n";
+                  << instance.Goal << "\t"
+                  << instance.Url << "\t"
+                  << instance.Weight << "\t"
+                  << linearModel.Prediction(instance.Features) << "\n";
     }
 
     return 0;

@@ -6,6 +6,7 @@ class TRegressionMetricsCalculator {
 private:
     TVarianceCalculator VarianceCalculator;
     TMeanCalculator MSECalculator;
+
 public:
     void Add(const double prediction, const double target, const double weight);
     double RMSE() const;

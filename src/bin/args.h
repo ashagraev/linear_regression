@@ -19,15 +19,16 @@ protected:
 };
 
 template <typename TValue>
-class TSomeArgParser : public TArgParser {
+class TSomeArgParser: public TArgParser {
 private:
     TValue* Target = nullptr;
     std::string Description;
     bool IsOptional = false;
+
 private:
     TSomeArgParser(TValue* target, const std::string& description)
         : Target(target)
-        , Description(description)
+        , Description(description) 
     {
     }
 
@@ -49,6 +50,7 @@ private:
     bool IsRequired() const override {
         return !IsOptional;
     }
+
 public:
     void Required() {
         IsOptional = false;
@@ -56,6 +58,7 @@ public:
     void Optional() {
         IsOptional = true;
     }
+
 private:
     friend class TArgsParser;
 };
@@ -66,6 +69,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<TArgParser>> Parsers;
 
     std::unordered_set<std::string> RequiredArguments;
+
 public:
     template <typename TValue>
     TSomeArgParser<TValue>& AddHandler(std::string key, TValue* target, const std::string& description) {
@@ -92,6 +96,7 @@ private:
 
     std::vector<TFuncInfo> FunctionInfos;
     std::unordered_map<std::string, TMainFunc*> Functions;
+
 public:
     void Add(const std::string& arg, TMainFunc* function, const std::string& description) {
         FunctionInfos.push_back({arg, description});

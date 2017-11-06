@@ -50,7 +50,7 @@ std::string TInstance::ToVowpalWabbitString() const {
 
     ss.precision(20);
 
-    for (size_t featureIdx = 0; featureIdx < Features.size(); ++ featureIdx) {
+    for (size_t featureIdx = 0; featureIdx < Features.size(); ++featureIdx) {
         ss << " " << featureIdx << ":" << Features[featureIdx];
     }
     ss << "\t" << QueryId;
@@ -73,7 +73,7 @@ std::string TInstance::ToSVMLightString() const {
     return ss.str();
 }
 
-const TInstance& TPool::TCVIterator::operator* () const {
+const TInstance& TPool::TCVIterator::operator*() const {
     return ParentPool[Current - InstanceFoldNumbers.begin()];
 }
 
@@ -97,8 +97,10 @@ void TPool::TCVIterator::Advance() {
 
 bool TPool::TCVIterator::TakeCurrent() const {
     switch (IteratorType) {
-    case IT_LEARN: return *Current != TestFoldNumber;
-    case IT_TEST: return *Current == TestFoldNumber;
+        case IT_LEARN:
+            return *Current != TestFoldNumber;
+        case IT_TEST:
+            return *Current == TestFoldNumber;
     }
     return false;
 }
@@ -172,7 +174,7 @@ TPool::TCVIterator TPool::TestIterator(const size_t foldsCount) const {
 
 TPool::TSimpleIterator::TSimpleIterator(const TPool& parentPool)
     : ParentPool(parentPool)
-    , Current(ParentPool.begin())
+    , Current(ParentPool.begin()) 
 {
 }
 
@@ -186,7 +188,6 @@ const TInstance& TPool::TSimpleIterator::operator*() const {
 
 const TInstance* TPool::TSimpleIterator::operator->() const {
     return &*Current;
-
 }
 
 TPool::TSimpleIterator& TPool::TSimpleIterator::operator++() {
@@ -204,7 +205,7 @@ TPool::TCVIterator::TCVIterator(const TPool& parentPool, const size_t foldsCount
     , IteratorType(iteratorType)
     , TestFoldNumber((size_t)-1)
     , InstanceFoldNumbers(ParentPool.size())
-    , Current(InstanceFoldNumbers.begin())
+    , Current(InstanceFoldNumbers.begin()) 
 {
     ResetShuffle();
 }
@@ -216,7 +217,7 @@ TPool::TCVIterator::TCVIterator(const TCVIterator& source)
     , TestFoldNumber(source.TestFoldNumber)
     , InstanceFoldNumbers(source.InstanceFoldNumbers)
     , Current(InstanceFoldNumbers.begin() + (source.Current - source.InstanceFoldNumbers.begin()))
-    , RandomGenerator(source.RandomGenerator)
+    , RandomGenerator(source.RandomGenerator) 
 {
 }
 

@@ -16,8 +16,7 @@ TCrossValidationResult CrossValidation(
     const size_t runsCount,
     const std::string& learningMode,
     const std::string verboseMode,
-    const bool verbose)
-{
+    const bool verbose) {
     double learningTime = 0;
 
     TPool::TCVIterator learnIterator = pool.LearnIterator(foldsCount);

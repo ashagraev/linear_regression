@@ -2,7 +2,7 @@
 
 TLinearModel::TLinearModel(size_t featuresCount /*= 0*/)
     : Coefficients(featuresCount)
-    , Intercept(0.)
+    , Intercept(0.) 
 {
 }
 
@@ -10,7 +10,7 @@ void TLinearModel::SaveToFile(const std::string& modelPath) const {
     std::ofstream modelOut(modelPath);
     modelOut.precision(20);
 
-    modelOut << (unsigned int) Coefficients.size() << " ";
+    modelOut << (unsigned int)Coefficients.size() << " ";
     modelOut << Intercept << " ";
 
     for (const double coefficient : Coefficients) {

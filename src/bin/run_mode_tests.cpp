@@ -19,7 +19,7 @@ namespace {
     }
 
     const std::vector<double> SampleLinearCoefficients() {
-        return{ 1., -2., 3., 0., 3., 1., 8., 0.1, -0.1, 0., -50. };
+        return {1., -2., 3., 0., 3., 1., 8., 0.1, -0.1, 0., -50.};
     }
 
     TPool MakeRandomPool() {
@@ -102,10 +102,10 @@ namespace {
 
             if (currentLearnIndexes.size() + currentTestIndexes.size() != pool.size()) {
                 std::cerr << "got iterators error: learn + test size unequal to pool size on fold " << fold
-                    << "; learn: " << currentLearnIndexes.size()
-                    << ", test: " << currentTestIndexes.size()
-                    << ", needed: " << pool.size()
-                    << std::endl;
+                          << "; learn: " << currentLearnIndexes.size()
+                          << ", test: " << currentTestIndexes.size()
+                          << ", needed: " << pool.size()
+                          << std::endl;
                 ++errorsCount;
             }
         }
@@ -261,7 +261,7 @@ namespace {
 }
 
 int DoTest(int argc, const char** argv) {
-    (void) (argc && argv);
+    (void)(argc && argv);
 
     TPool pool = MakeRandomPool();
 

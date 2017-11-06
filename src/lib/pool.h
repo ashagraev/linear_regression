@@ -19,12 +19,13 @@ struct TInstance {
     std::string ToSVMLightString() const;
 };
 
-class TPool : public std::vector<TInstance> {
+class TPool: public std::vector<TInstance> {
 private:
     enum ECVIteratorType {
         IT_LEARN,
         IT_TEST,
     };
+
 public:
     class TSimpleIterator;
     class TCVIterator;
@@ -48,12 +49,13 @@ public:
     private:
         const TPool& ParentPool;
         TPool::const_iterator Current;
+
     public:
         TSimpleIterator(const TPool& parentPool);
 
         bool IsValid() const;
-        const TInstance& operator * () const;
-        const TInstance* operator ->() const;
+        const TInstance& operator*() const;
+        const TInstance* operator->() const;
         TSimpleIterator& operator++();
         size_t GetInstanceIdx() const;
     };
@@ -71,10 +73,11 @@ public:
         std::vector<size_t>::const_iterator Current;
 
         std::mt19937 RandomGenerator;
+
     public:
         TCVIterator(const TPool& parentPool,
-            const size_t foldsCount,
-            const TPool::ECVIteratorType iteratorType);
+                    const size_t foldsCount,
+                    const TPool::ECVIteratorType iteratorType);
         TCVIterator(const TCVIterator& source);
 
         void ResetShuffle();
@@ -83,11 +86,12 @@ public:
 
         bool IsValid() const;
 
-        const TInstance& operator * () const;
-        const TInstance* operator ->() const;
+        const TInstance& operator*() const;
+        const TInstance* operator->() const;
         TCVIterator& operator++();
 
         size_t GetInstanceIdx() const;
+
     private:
         void Advance();
         bool TakeCurrent() const;
