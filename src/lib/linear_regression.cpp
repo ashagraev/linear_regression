@@ -307,7 +307,7 @@ namespace NLinearRegressionInner {
             }
             sumSquaredErrors -= 2 * solution[i] * olsVector[i];
         }
-        return sumSquaredErrors;
+        return std::max(0., sumSquaredErrors);
     }
 
     inline void AddFeaturesProduct(const double weight, const std::vector<double>& features, std::vector<double>& linearizedTriangleMatrix) {
