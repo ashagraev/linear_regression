@@ -5,6 +5,7 @@
 #include "../lib/pool.h"
 
 #include <iostream>
+#include <map>
 #include <unordered_set>
 
 namespace {
@@ -123,7 +124,7 @@ namespace {
     }
 
     template <typename TSLRSolver>
-    size_t CheckModelPrecision(const TPool& pool) {
+    size_t CheckModelPrecision(const TPool& pool, std::map<std::string, size_t>& testCounters) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
         const TLinearModel model = Solve<TSLRSolver>(learnIterator);
         const double rmse = TRegressionMetricsCalculator::Build(learnIterator, model).RMSE();
@@ -133,11 +134,14 @@ namespace {
             std::cerr << TSLRSolver::Name() << " is not enough precise" << std::endl;
             ++errorsCount;
         }
+
+        ++testCounters[TSLRSolver::Name()];
+
         return errorsCount;
     }
 
     template <typename TFirstSLRSolver, typename TSecondSRLSolver>
-    size_t CheckIfModelsAreEqual(const TPool& pool) {
+    size_t CheckIfModelsAreEqual(const TPool& pool, std::map<std::string, size_t>& testCounters) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
 
         const TLinearModel firstModel = Solve<TFirstSLRSolver>(learnIterator);
@@ -151,11 +155,13 @@ namespace {
             std::cerr << TFirstSLRSolver::Name() << " & " << TSecondSRLSolver::Name() << " models are different" << std::endl;
             ++errorsCount;
         }
+        ++testCounters[TFirstSLRSolver::Name()];
+        ++testCounters[TSecondSRLSolver::Name()];
         return errorsCount;
     }
 
     template <typename TSLRSolver>
-    size_t CheckModelCoefficients(const TPool& pool, const std::vector<double>& targetCoefficients) {
+    size_t CheckModelCoefficients(const TPool& pool, const std::vector<double>& targetCoefficients, std::map<std::string, size_t>& testCounters) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
         const TLinearModel model = Solve<TSLRSolver>(learnIterator);
 
@@ -171,6 +177,8 @@ namespace {
                 ++errorsCount;
             }
         }
+
+        ++testCounters[TSLRSolver::Name()];
 
         return errorsCount;
     }
@@ -192,24 +200,30 @@ namespace {
 
         size_t errorsCount = 0;
 
-        errorsCount += CheckModelPrecision<TFastLRSolver>(pool);
-        errorsCount += CheckModelPrecision<TWelfordLRSolver>(pool);
-        errorsCount += CheckModelPrecision<TNormalizedWelfordLRSolver>(pool);
+        std::map<std::string, size_t> testCounters;
+
+        errorsCount += CheckModelPrecision<TFastLRSolver>(pool, testCounters);
+        errorsCount += CheckModelPrecision<TWelfordLRSolver>(pool, testCounters);
+        errorsCount += CheckModelPrecision<TNormalizedWelfordLRSolver>(pool, testCounters);
 
         for (const TPool& nonZeroMSEPool : nonZeroMSEPools) {
-            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(nonZeroMSEPool);
-            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(nonZeroMSEPool);
-            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TNormalizedWelfordBestSLRSolver>(nonZeroMSEPool);
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TNormalizedWelfordBestSLRSolver>(nonZeroMSEPool, testCounters);
 
-            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(nonZeroMSEPool);
-            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(nonZeroMSEPool);
+            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(nonZeroMSEPool, testCounters);
+            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(nonZeroMSEPool, testCounters);
 
-            errorsCount += CheckModelCoefficients<TFastLRSolver>(nonZeroMSEPool, SampleLinearCoefficients());
-            errorsCount += CheckModelCoefficients<TWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients());
-            errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients());
+            errorsCount += CheckModelCoefficients<TFastLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
+            errorsCount += CheckModelCoefficients<TWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
+            errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(nonZeroMSEPool, SampleLinearCoefficients(), testCounters);
         }
 
         std::cout << "linear regression errors: " << errorsCount << std::endl;
+
+        for (auto&& nameWithCount : testCounters) {
+            std::cout << "\t" << "test runs for " << nameWithCount.first << ": " << nameWithCount.second << std::endl;
+        }
 
         return errorsCount;
     }
