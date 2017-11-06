@@ -25,7 +25,7 @@ TLinearModel Solve(TIteratorType iterator, const std::string& learningMode) {
         linearModel = Solve<TWelfordBestSLRSolver>(iterator);
     }
     if (learningMode == "normalized_welford_bslr") {
-        linearModel = Solve<TWelfordBestSLRSolver>(iterator);
+        linearModel = Solve<TNormalizedWelfordBestSLRSolver>(iterator);
     }
     if (learningMode == "fast_lr") {
         linearModel = Solve<TFastLRSolver>(iterator);
