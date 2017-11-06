@@ -122,65 +122,94 @@ namespace {
         return errorsCount;
     }
 
-    size_t DoTestLRModels(const TPool& pool) {
+    template <typename TSLRSolver>
+    size_t CheckModelPrecision(const TPool& pool, const std::string& title) {
+        TPool::TSimpleIterator learnIterator = pool.Iterator();       
+        const TLinearModel model = Solve<TSLRSolver>(learnIterator);
+        const double rmse = TRegressionMetricsCalculator::Build(learnIterator, model).RMSE();
+
+        size_t errorsCount = 0;
+        if (!DoublesAreQuiteSimilar(rmse, 0.)) {
+            std::cerr << title << " is not enough precise" << std::endl;
+            ++errorsCount;
+        }
+        return errorsCount;
+    }
+
+    template <typename TFirstSLRSolver, typename TSecondSRLSolver>
+    size_t CheckIfModelsAreEqual(const TPool& pool, const std::string& firstTitle, const std::string& secondTitle) {
         TPool::TSimpleIterator learnIterator = pool.Iterator();
 
-        TLinearModel fbslrModel = Solve<TFastBestSLRSolver>(learnIterator);
-        TLinearModel kbslrModel = Solve<TKahanBestSLRSolver>(learnIterator);
-        TLinearModel wbslrModel = Solve<TWelfordBestSLRSolver>(learnIterator);
+        const TLinearModel firstModel = Solve<TFirstSLRSolver>(learnIterator);
+        const TLinearModel secondModel = Solve<TSecondSRLSolver>(learnIterator);
 
-        TLinearModel flrModel = Solve<TFastLRSolver>(learnIterator);
-        TLinearModel wlrModel = Solve<TWelfordLRSolver>(learnIterator);
-        TLinearModel nwlrModel = Solve<TNormalizedWelfordLRSolver>(learnIterator);
+        const double firstRMSE = TRegressionMetricsCalculator::Build(learnIterator, firstModel).RMSE();
+        const double secondRMSE = TRegressionMetricsCalculator::Build(learnIterator, secondModel).RMSE();
 
-        const double fbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, fbslrModel).RMSE();
-        const double kbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, kbslrModel).RMSE();
-        const double wbslrRMSE = TRegressionMetricsCalculator::Build(learnIterator, wbslrModel).RMSE();
+        size_t errorsCount = 0;
+        if (!DoublesAreQuiteSimilar(firstRMSE, secondRMSE)) {
+            std::cerr << firstTitle << " & " << secondTitle << " models are different" << std::endl;
+            ++errorsCount;
+        }
+        return errorsCount;
+    }
 
-        const double flrRMSE = TRegressionMetricsCalculator::Build(learnIterator, flrModel).RMSE();
-        const double wlrRMSE = TRegressionMetricsCalculator::Build(learnIterator, wlrModel).RMSE();
-        const double nwlrRMSE = TRegressionMetricsCalculator::Build(learnIterator, nwlrModel).RMSE();
+    template <typename TSLRSolver>
+    size_t CheckModelCoefficients(const TPool& pool, const std::string& title, const std::vector<double>& targetCoefficients) {
+        TPool::TSimpleIterator learnIterator = pool.Iterator();       
+        const TLinearModel model = Solve<TSLRSolver>(learnIterator);
 
         size_t errorsCount = 0;
 
-        auto checkRMSE = [&errorsCount](const double rmse, const double targetRMSE, const std::string& title) {
-            if (!DoublesAreQuiteSimilar(rmse, targetRMSE)) {
-                std::cerr << title << std::endl;
+        const size_t featuresCount = targetCoefficients.size();
+        for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
+            const double present = model.Coefficients[fIdx];
+            const double actual = targetCoefficients[fIdx];
+
+            if (!DoublesAreQuiteSimilar(present, actual)) {
+                std::cerr << "coefficients error for " << title << ": got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
                 ++errorsCount;
             }
-        };
+        }    
 
-        checkRMSE(fbslrRMSE, kbslrRMSE, "fast & kahan bslr models are different");
-        checkRMSE(fbslrRMSE, wbslrRMSE, "fast & welford bslr models are different");
-        checkRMSE(flrRMSE, wlrRMSE, "fast & welford lr models are different");
-        checkRMSE(flrRMSE, 0, "fast lr model is not enough precise");
-        checkRMSE(wlrRMSE, 0, "welformd lr model is not enough precise");
-        checkRMSE(nwlrRMSE, 0, "normalized welformd lr model is not enough precise");
+        return errorsCount;
+    }
 
-        const size_t featuresCount = pool.FeaturesCount();
-        const std::vector<double> actualCoefficients = SampleLinearCoefficients();
+    size_t DoTestLRModels(const TPool& pool) {      
+        std::mt19937 mersenne;
+        std::normal_distribution<double> randGen;
 
-        auto testModel = [&](const TLinearModel& model, const std::string& title) {
-            for (size_t fIdx = 0; fIdx < featuresCount; ++fIdx) {
-                const double present = model.Coefficients[fIdx];
-                const double actual = actualCoefficients[fIdx];
+        std::vector<TPool> nonZeroMSEPools;
+        nonZeroMSEPools.push_back(pool);
+        const size_t nonZeroMSEPoolsCount = 5;
+        for (size_t nonZeroPoolIdx = 0; nonZeroPoolIdx < nonZeroMSEPoolsCount; ++nonZeroPoolIdx) {
+            TPool nonZeroMSEPool(pool);
+            for (TInstance& instance : nonZeroMSEPool) {
+                instance.Goal += randGen(mersenne) / 10;
+            }
+            nonZeroMSEPools.push_back(nonZeroMSEPool);
+        }
+
+        size_t errorsCount = 0;
+
+        errorsCount += CheckModelPrecision<TFastLRSolver>(pool, "fast lr");
+        errorsCount += CheckModelPrecision<TWelfordLRSolver>(pool, "welford ls");
+        errorsCount += CheckModelPrecision<TNormalizedWelfordLRSolver>(pool, "normalized welford lr");
+
+        for (const TPool& nonZeroMSEPool : nonZeroMSEPools) {
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TKahanBestSLRSolver>(nonZeroMSEPool, "fast bslr", "kahan bslr");
+            errorsCount += CheckIfModelsAreEqual<TFastBestSLRSolver, TWelfordBestSLRSolver>(nonZeroMSEPool, "fast bslr", "welford bslr");
+
+            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TWelfordLRSolver>(nonZeroMSEPool, "fast lr", "welford lr");
+            errorsCount += CheckIfModelsAreEqual<TFastLRSolver, TNormalizedWelfordLRSolver>(nonZeroMSEPool, "fast lr", "normalized welford lr");
     
-                if (!DoublesAreQuiteSimilar(present, actual)) {
-                    std::cerr << "coefficients error for " << title << ": got " << present << " while " << actual << " is needed for feature #" << fIdx << std::endl;
-                    ++errorsCount;
-                }
-            }    
-        };
+            errorsCount += CheckModelCoefficients<TFastLRSolver>(nonZeroMSEPool, "fast lr", SampleLinearCoefficients());
+            errorsCount += CheckModelCoefficients<TWelfordLRSolver>(nonZeroMSEPool, "welford lr", SampleLinearCoefficients());
+            errorsCount += CheckModelCoefficients<TNormalizedWelfordLRSolver>(nonZeroMSEPool, "normalized welford lr", SampleLinearCoefficients());
+        }
 
-        testModel(flrModel, "fast lr solver");
-        testModel(wlrModel, "welford lr solver");
-        testModel(nwlrModel, "normalized welford lr solver");
-
-        std::cout << "lr model errors: " << errorsCount << std::endl;
-        std::cout << "    wbslr RMSE: " << wbslrRMSE << std::endl;
-        std::cout << "    wlr RMSE:   " << wlrRMSE << std::endl;
-        std::cout << "    nwlr RMSE:  " << nwlrRMSE << std::endl;
-
+        std::cout << "linear regression errors: " << errorsCount << std::endl;
+        
         return errorsCount;
     }
 }
