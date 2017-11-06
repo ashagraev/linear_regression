@@ -117,7 +117,7 @@ public:
     double SumSquaredErrors(const double regularizationParameter = DefaultRegularizationParameter) const;
 
     static const std::string Name() {
-        return "welford";
+        return "Welford";
     }
 };
 
@@ -126,7 +126,7 @@ public:
     void Add(const double feature, const double goal, const double weight = 1.);
 
     static const std::string Name() {
-        return "normalized welford";
+        return "normalized Welford";
     }
 };
 

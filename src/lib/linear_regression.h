@@ -38,7 +38,7 @@ public:
     double SumSquaredErrors() const;
 
     static const std::string Name() {
-        return "welford LR";
+        return "Welford LR";
     }
 protected:
     bool PrepareMeans(const std::vector<double>& features, const double weight);
@@ -49,6 +49,6 @@ public:
     void Add(const std::vector<double>& features, const double goal, const double weight = 1.);
 
     static const std::string Name() {
-        return "normalized welford LR";
+        return "normalized Welford LR";
     }
 };
