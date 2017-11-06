@@ -38,7 +38,7 @@ void TNormalizedWelfordSLRSolver::Add(const double feature, const double goal, c
     FeaturesMean += weight * (feature - FeaturesMean) / SumWeights;
     FeaturesDeviation += weight * ((feature - oldFeaturesMean) * (feature - FeaturesMean) - FeaturesDeviation) / SumWeights;
 
-    const double oldGoalsMean = FeaturesMean;
+    const double oldGoalsMean = GoalsMean;
     GoalsMean += weight * (goal - GoalsMean) / SumWeights;
     GoalsDeviation += weight * ((goal - oldGoalsMean) * (goal - GoalsMean) - GoalsDeviation) / SumWeights;
 
