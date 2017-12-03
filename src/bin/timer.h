@@ -15,7 +15,7 @@ private:
 public:
     TTimer(const std::string& title = std::string())
         : Start(TClockType::now())
-        , Title(title) 
+        , Title(title)
     {
     }
 

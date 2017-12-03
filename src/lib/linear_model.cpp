@@ -2,7 +2,7 @@
 
 TLinearModel::TLinearModel(size_t featuresCount /*= 0*/)
     : Coefficients(featuresCount)
-    , Intercept(0.) 
+    , Intercept(0.)
 {
 }
 

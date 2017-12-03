@@ -8,7 +8,7 @@ private:
 public:
     TKahanAccumulator(const double value = 0.)
         : Sum(value)
-        , Addition(0.) 
+        , Addition(0.)
     {
     }
 

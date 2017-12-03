@@ -28,7 +28,7 @@ private:
 private:
     TSomeArgParser(TValue* target, const std::string& description)
         : Target(target)
-        , Description(description) 
+        , Description(description)
     {
     }
 
