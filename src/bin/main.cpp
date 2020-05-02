@@ -9,7 +9,17 @@
 #include "run_mode_to_svm_light.h"
 #include "run_mode_to_vowpal_wabbit.h"
 
+#include "../lib/iterative_linear_regression.h"
+
 int main(int argc, const char** argv) {
+    TPool pool;
+    pool.ReadFromFeatures("C:/GitHub/linear_regression/data/features/cpu_act.features");
+
+    TIterativeLRSolver adaptiveSolver;
+    adaptiveSolver.Learn(pool.Iterator());
+
+    return 0;
+
     TModeChooser modeChooser;
 
     modeChooser.Add("learn", &DoLearn, "learn model from features");
