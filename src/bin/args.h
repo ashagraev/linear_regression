@@ -9,6 +9,8 @@
 
 class TArgParser {
 protected:
+    virtual ~TArgParser() {}
+
     virtual const std::string GetValue() const = 0;
     virtual void SetValue(const std::string& arg) = 0;
 
